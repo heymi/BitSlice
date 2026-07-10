@@ -231,13 +231,8 @@ final class AppViewModel {
 
     /// Real-time preview of the first output file name
     var namingPreview: String {
-        guard hasValidOutputName else { return "—" }
         guard !segments.isEmpty else { return "—" }
         return segments.first?.fileName ?? "—"
-    }
-
-    var hasValidOutputName: Bool {
-        !config.customTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     /// Segment summary text
@@ -315,7 +310,7 @@ final class AppViewModel {
     // MARK: - Export
 
     func startExport() async {
-        guard let asset = videoAsset, !segments.isEmpty, hasValidOutputName else { return }
+        guard let asset = videoAsset, !segments.isEmpty else { return }
         guard let outputDir = config.outputDirectory else {
             phase = .failed(message: "请先选择导出目录。")
             return

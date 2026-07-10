@@ -4,17 +4,27 @@ import SwiftUI
 
 struct ProcessingSheetView: View {
     let model: AppViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
             // Backdrop
-            Color.black.opacity(0.2)
+            Color.black.opacity(0.42)
                 .ignoresSafeArea()
                 .onTapGesture {}
 
             // Modal
             VStack(spacing: 20) {
-                if case .exporting(let current, let total, let overall, let segment) = model.phase {
+                if case .exporting(let current, let total, let overall, _) = model.phase {
+                    VStack(spacing: 6) {
+                        Text("Exporting your clips")
+                            .font(.system(size: 19, weight: .bold))
+                            .foregroundStyle(.white.opacity(0.9))
+                        Text("Keep BiCut open while we finish the files.")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(BiCutTheme.muted)
+                    }
+
                     // Progress circle
                     progressCircle(current: current, total: total, overall: overall)
 
@@ -25,25 +35,24 @@ struct ProcessingSheetView: View {
                     logTerminal
 
                     // Cancel button
-                    Button("取消导出") {
+                    Button("Cancel export") {
                         model.cancelExport()
                     }
-                    .buttonStyle(.borderless)
-                    .foregroundColor(.red)
-                    .font(.caption)
+                    .buttonStyle(ScaleButtonStyle())
+                    .foregroundStyle(.red.opacity(0.9))
+                    .font(.system(size: 12, weight: .semibold))
+                    .padding(.horizontal, 14)
+                    .frame(height: 32)
+                    .background(Capsule().fill(Color.red.opacity(0.09)))
                 }
             }
             .frame(width: 460)
             .padding(32)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24)
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                    )
+                    .fill(BiCutTheme.panel)
             )
-            .shadow(color: Color.black.opacity(0.15), radius: 40, x: 0, y: 20)
+            .shadow(color: Color.black.opacity(0.35), radius: 40, x: 0, y: 20)
         }
     }
 
@@ -68,7 +77,10 @@ struct ProcessingSheetView: View {
                 )
                 .frame(width: 100, height: 100)
                 .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.3), value: overall)
+            .animation(
+                reduceMotion ? nil : .interactiveSpring(response: 0.28, dampingFraction: 1),
+                value: overall
+            )
 
             // Percentage
             VStack(spacing: 0) {
@@ -92,10 +104,7 @@ struct ProcessingSheetView: View {
             TelemetryItem(label: "目标", value: formatTimeDetailed(model.videoDuration))
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.primary.opacity(0.04))
-        )
+        .background(RoundedRectangle(cornerRadius: 13).fill(BiCutTheme.control))
     }
 
     // MARK: - Log Terminal
@@ -114,20 +123,19 @@ struct ProcessingSheetView: View {
                     Color.clear.frame(height: 1).id("bottom")
                 }
                 .onChange(of: model.exportLogs.count) {
-                    withAnimation { proxy.scrollTo("bottom", anchor: .bottom) }
+                    if reduceMotion {
+                        proxy.scrollTo("bottom", anchor: .bottom)
+                    } else {
+                        withAnimation(.interactiveSpring(response: 0.28, dampingFraction: 1)) {
+                            proxy.scrollTo("bottom", anchor: .bottom)
+                        }
+                    }
                 }
             }
         }
         .frame(height: 120)
         .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.black.opacity(0.92))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.green.opacity(0.15), lineWidth: 1)
-        )
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.black.opacity(0.42)))
     }
 }
 

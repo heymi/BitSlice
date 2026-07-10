@@ -10,6 +10,7 @@ final class DropZoneLocalState {
 struct DropZoneView: View {
     let model: AppViewModel
     private let local = DropZoneLocalState()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -39,8 +40,7 @@ struct DropZoneView: View {
         VStack(spacing: 20) {
             ZStack {
                 RoundedRectangle(cornerRadius: 17)
-                    .fill(Color.white.opacity(0.025))
-                    .overlay(RoundedRectangle(cornerRadius: 17).stroke(BiCutTheme.border))
+                    .fill(BiCutTheme.elevated)
                 Image(systemName: "film.stack")
                     .font(.system(size: 34, weight: .medium))
                     .symbolRenderingMode(.hierarchical)
@@ -60,17 +60,21 @@ struct DropZoneView: View {
         .frame(maxWidth: .infinity, minHeight: 240)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(local.isTargeted ? BiCutTheme.blue.opacity(0.055) : Color.white.opacity(0.022))
+                .fill(local.isTargeted ? BiCutTheme.blue.opacity(0.10) : BiCutTheme.panel)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20)
                 .stroke(
-                    local.isTargeted ? BiCutTheme.blue.opacity(0.75) : Color.white.opacity(0.14),
-                    style: StrokeStyle(lineWidth: local.isTargeted ? 2 : 1.5, dash: [5, 4])
+                    local.isTargeted ? BiCutTheme.blue.opacity(0.72) : .clear,
+                    lineWidth: 1.5
                 )
         )
-        .scaleEffect(local.isTargeted ? 1.008 : 1)
-        .animation(.easeOut(duration: 0.18), value: local.isTargeted)
+        .scaleEffect(local.isTargeted && !reduceMotion ? 1.008 : 1)
+        .shadow(color: local.isTargeted ? BiCutTheme.blue.opacity(0.12) : .black.opacity(0.10), radius: local.isTargeted ? 20 : 14, y: 6)
+        .animation(
+            reduceMotion ? .linear(duration: 0.12) : .interactiveSpring(response: 0.26, dampingFraction: 1),
+            value: local.isTargeted
+        )
         .contentShape(RoundedRectangle(cornerRadius: 20))
         .onTapGesture { local.showFileImporter = true }
         .onDrop(
@@ -115,8 +119,7 @@ struct DropZoneView: View {
             HStack(spacing: 16) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 11)
-                        .fill(Color.white.opacity(0.025))
-                        .overlay(RoundedRectangle(cornerRadius: 11).stroke(BiCutTheme.border))
+                        .fill(BiCutTheme.elevated)
                     Image(systemName: "play.rectangle")
                         .font(.system(size: 17, weight: .medium))
                         .foregroundStyle(BiCutTheme.muted)
@@ -141,7 +144,6 @@ struct DropZoneView: View {
             .padding(.horizontal, 15)
             .frame(maxWidth: .infinity, minHeight: 66)
             .background(RoundedRectangle(cornerRadius: 15).fill(BiCutTheme.panel))
-            .overlay(RoundedRectangle(cornerRadius: 15).stroke(BiCutTheme.border))
         }
         .buttonStyle(ScaleButtonStyle())
     }
