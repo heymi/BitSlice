@@ -1,140 +1,279 @@
 import SwiftUI
 
+enum BiCutTheme {
+    static let canvas = Color(red: 0.055, green: 0.057, blue: 0.071)
+    static let chrome = Color(red: 0.072, green: 0.074, blue: 0.086)
+    static let panel = Color(red: 0.082, green: 0.084, blue: 0.096)
+    static let control = Color.white.opacity(0.055)
+    static let border = Color.white.opacity(0.075)
+    static let muted = Color.white.opacity(0.43)
+    static let blue = Color(red: 0.18, green: 0.48, blue: 1.0)
+    static let amber = Color(red: 1.0, green: 0.68, blue: 0.0)
+}
+
 struct ContentView: View {
     let model: AppViewModel
 
     var body: some View {
         ZStack {
-            if model.videoAsset == nil {
-                DropZoneView(model: model).padding(40)
-            } else {
-                VStack(spacing: 0) {
-                    HStack(alignment: .top, spacing: 0) {
-                        VStack(spacing: 0) {
-                            videoStage
-                            segmentTimeline
-                            Spacer(minLength: 0)
-                        }
-                        Divider()
-                        InspectorSidebarView(model: model).frame(width: 340)
-                    }
+            BiCutTheme.canvas.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                appHeader
+                Divider().overlay(BiCutTheme.border)
+
+                if model.videoAsset == nil {
+                    DropZoneView(model: model)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    workspace
                 }
+
+                Divider().overlay(BiCutTheme.border)
+                statusBar
             }
 
-            if case .exporting = model.phase {
-                ProcessingSheetView(model: model)
+            if case .exporting = model.phase { ProcessingSheetView(model: model) }
+            if case .completed = model.phase { FinderPreviewView(model: model) }
+        }
+        .preferredColorScheme(.dark)
+        .tint(BiCutTheme.blue)
+    }
+
+    private var workspace: some View {
+        HStack(spacing: 0) {
+            VStack(spacing: 22) {
+                sourceCard
+                videoWorkspace
+                Spacer(minLength: 0)
             }
-            if case .completed = model.phase {
-                FinderPreviewView(model: model)
-            }
+            .padding(26)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+            Divider().overlay(BiCutTheme.border)
+            InspectorSidebarView(model: model)
+                .frame(width: 408)
         }
     }
 
-    private var videoStage: some View {
-        VStack(spacing: 6) {
+    private var appHeader: some View {
+        ZStack {
+            HStack {
+                Spacer()
+                Image(systemName: "sun.max")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(BiCutTheme.amber)
+                Image(systemName: "questionmark.circle")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(BiCutTheme.muted)
+                    .padding(.leading, 12)
+            }
+
+            HStack(spacing: 12) {
+                Text("BiCut")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.9))
+                Rectangle().fill(BiCutTheme.border).frame(width: 1, height: 20)
+                HStack(spacing: 7) {
+                    Circle().fill(Color(red: 0.0, green: 0.75, blue: 0.55)).frame(width: 7, height: 7)
+                    Text("Slicer Core v2.7")
+                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(BiCutTheme.muted)
+                }
+                .padding(.horizontal, 10).padding(.vertical, 6)
+                .background(RoundedRectangle(cornerRadius: 7).fill(Color.white.opacity(0.035)))
+                .overlay(RoundedRectangle(cornerRadius: 7).stroke(BiCutTheme.border))
+            }
+        }
+        .padding(.horizontal, 26)
+        .frame(height: 64)
+        .background(BiCutTheme.chrome)
+    }
+
+    private var sourceCard: some View {
+        HStack(spacing: 16) {
             ZStack {
+                RoundedRectangle(cornerRadius: 13)
+                    .fill(BiCutTheme.blue.opacity(0.13))
+                    .overlay(RoundedRectangle(cornerRadius: 13).stroke(BiCutTheme.blue.opacity(0.28)))
+                Image(systemName: "film")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(Color(red: 0.26, green: 0.60, blue: 1.0))
+            }
+            .frame(width: 48, height: 48)
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text(model.videoAsset?.fileName ?? "")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(sourceMetadata)
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(BiCutTheme.muted)
+            }
+            Spacer()
+            Button { model.requestReplacementFile() } label: {
+                Label("Replace File", systemImage: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 13, weight: .semibold))
+                    .padding(.horizontal, 17).frame(height: 36)
+                    .background(RoundedRectangle(cornerRadius: 13).fill(Color.white.opacity(0.12)))
+            }
+            .buttonStyle(ScaleButtonStyle())
+            .foregroundStyle(.white.opacity(0.72))
+        }
+        .padding(.horizontal, 18)
+        .frame(height: 84)
+        .background(RoundedRectangle(cornerRadius: 18).fill(BiCutTheme.panel))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(BiCutTheme.border))
+    }
+
+    private var videoWorkspace: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                Color.black
                 if let player = model.player {
                     VideoPlayerViewRepresentable(player: player)
-                        .aspectRatio(16/9, contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    RoundedRectangle(cornerRadius: 8).fill(Color.black.opacity(0.5))
-                        .aspectRatio(16/9, contentMode: .fit)
+                        .aspectRatio(16 / 9, contentMode: .fit)
                 }
                 if !model.isPlaying {
-                    Image(systemName: "play.fill").font(.largeTitle).foregroundColor(.white.opacity(0.6))
+                    Button { model.togglePlayback() } label: {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 25, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .frame(width: 58, height: 58)
+                            .background(Circle().fill(.black.opacity(0.48)))
+                            .overlay(Circle().stroke(.white.opacity(0.12)))
+                    }
+                    .buttonStyle(ScaleButtonStyle())
                 }
             }
+            .aspectRatio(16 / 9, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
             .onTapGesture { model.togglePlayback() }
 
-            HStack(spacing: 14) {
-                Button { model.togglePlayback() } label: {
-                    Image(systemName: model.isPlaying ? "pause.fill" : "play.fill").font(.body)
-                }.buttonStyle(.plain)
-                Button { model.stepFrame(forward: false) } label: {
-                    Image(systemName: "backward.frame").font(.caption)
-                }.buttonStyle(.plain)
-                Button { model.stepFrame(forward: true) } label: {
-                    Image(systemName: "forward.frame").font(.caption)
-                }.buttonStyle(.plain)
-                Text("\(formatMMSS(model.currentTime)) / \(formatMMSS(model.videoDuration))")
-                    .font(.caption.monospacedDigit()).foregroundColor(.secondary)
-                Spacer()
-                Button { model.toggleMute() } label: {
-                    Image(systemName: model.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill").font(.caption)
-                }.buttonStyle(.plain)
-                Menu {
-                    ForEach([0.5, 1.0, 1.5, 2.0], id: \.self) { s in
-                        Button("\(String(format: "%.1f", s))×") { model.setSpeed(s) }
-                    }
-                } label: {
-                    Text("\(String(format: "%.1f", model.playbackSpeed))×")
-                        .font(.caption.monospacedDigit()).foregroundColor(.secondary)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.06)))
-                }.menuStyle(.borderlessButton).frame(width: 44)
-            }
-            .padding(.horizontal, 10)
+            segmentTimeline
         }
-        .padding(14)
+        .background(BiCutTheme.panel)
+        .clipShape(RoundedRectangle(cornerRadius: 18))
+        .overlay(RoundedRectangle(cornerRadius: 18).stroke(BiCutTheme.border))
     }
 
     private var segmentTimeline: some View {
-        let totalSec = model.videoDuration
-        let count = model.segments.count
-        let colors: [(bg: Color, text: Color)] = [
-            (Color.indigo.opacity(0.18), Color.indigo),
-            (Color.green.opacity(0.18), Color.green),
-            (Color.orange.opacity(0.18), Color.orange),
-            (Color.pink.opacity(0.18), Color.pink),
-            (Color.cyan.opacity(0.18), Color.cyan),
-            (Color.purple.opacity(0.18), Color.purple),
-            (Color.yellow.opacity(0.18), Color.yellow),
-            (Color.teal.opacity(0.18), Color.teal),
-        ]
-        return VStack(spacing: 4) {
-            if count > 0 {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 2) {
-                        ForEach(Array(model.segments.enumerated()), id: \.element.id) { i, seg in
-                            let w = totalSec > 0 ? max(seg.durationSeconds / totalSec * 600, 38) : 38
-                            let c = colors[i % colors.count]
-                            let active = model.activeSegmentIndex == i
-                            Button { model.seekTo(seconds: seg.startSeconds) } label: {
-                                VStack(spacing: 1) {
-                                    Text("\(i + 1)").font(.system(size: 9, design: .monospaced)).fontWeight(.medium)
-                                    Text(formatMMSS(seg.durationSeconds)).font(.system(size: 7, design: .monospaced))
-                                }
-                                .foregroundColor(c.text).frame(width: w).padding(.vertical, 6)
-                                .background(RoundedRectangle(cornerRadius: 4).fill(c.bg))
-                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(active ? Color.blue : Color.clear, lineWidth: 2))
-                            }
-                            .buttonStyle(.plain)
+        VStack(spacing: 16) {
+            HStack {
+                Label("INTERACTIVE SLICES (\(model.segments.count))", systemImage: "scissors")
+                    .font(.system(size: 12, weight: .bold))
+                    .tracking(1.2)
+                    .foregroundStyle(BiCutTheme.muted)
+                Spacer()
+                Text("Click slices to preview cut start-points")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(BiCutTheme.muted)
+            }
+
+            GeometryReader { geometry in
+                let total = max(model.videoDuration, 1)
+                HStack(spacing: 4) {
+                    ForEach(Array(model.segments.enumerated()), id: \.element.id) { index, segment in
+                        let fraction = segment.durationSeconds / total
+                        Button { model.seekTo(seconds: segment.startSeconds) } label: {
+                            Text("#\(index + 1)")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .foregroundStyle(segmentTextColor(index))
+                                .frame(width: max(48, (geometry.size.width - CGFloat(max(model.segments.count - 1, 0)) * 4) * fraction), height: 38)
+                                .background(RoundedRectangle(cornerRadius: 9).fill(segmentFillColor(index)))
+                                .overlay(RoundedRectangle(cornerRadius: 9).stroke(model.activeSegmentIndex == index ? BiCutTheme.blue.opacity(0.7) : segmentTextColor(index).opacity(0.18), lineWidth: model.activeSegmentIndex == index ? 2 : 1))
                         }
+                        .buttonStyle(ScaleButtonStyle())
                     }
                 }
             }
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color.primary.opacity(0.12)).frame(height: 4)
-                Capsule().fill(Color.blue).frame(width: max(4, CGFloat(model.playbackProgress)) * 600, height: 4)
-                Circle().fill(Color.blue).frame(width: 12, height: 12)
-                    .overlay(Circle().stroke(Color.white, lineWidth: 2.5))
-                    .offset(x: max(-4, CGFloat(model.playbackProgress)) * 600 - 6)
+            .frame(height: 38)
+
+            GeometryReader { geometry in
+                let x = CGFloat(model.playbackProgress) * geometry.size.width
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.12)).frame(height: 3)
+                    Capsule().fill(BiCutTheme.blue).frame(width: max(0, x), height: 3)
+                    Circle().fill(BiCutTheme.blue).frame(width: 13, height: 13)
+                        .overlay(Circle().stroke(.white, lineWidth: 2))
+                        .shadow(color: BiCutTheme.blue.opacity(0.5), radius: 5)
+                        .offset(x: min(max(0, x - 6.5), geometry.size.width - 13))
+                }
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .gesture(DragGesture(minimumDistance: 0).onChanged { value in
+                    model.seekTo(seconds: max(0, min(1, value.location.x / geometry.size.width)) * model.videoDuration)
+                })
             }
-            .frame(height: 16).contentShape(Rectangle())
-            .gesture(DragGesture(minimumDistance: 0).onChanged { v in
-                model.seekTo(seconds: max(0, min(1, v.location.x / 600)) * model.videoDuration)
-            })
-            .padding(.horizontal, 14)
+            .frame(height: 16)
+
+            HStack {
+                Text(formatTimestamp(model.currentTime))
+                Spacer()
+                Text(formatTimestamp(model.videoDuration))
+            }
+            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+            .foregroundStyle(BiCutTheme.muted)
         }
-        .padding(.vertical, 10)
+        .padding(26)
+    }
+
+    private var statusBar: some View {
+        HStack {
+            Label("macOS Environment: Unified Canvas", systemImage: "laptopcomputer")
+            Spacer()
+            Text(model.videoAsset == nil ? "Standby (No Source)" : "Timeline: \(formatShortDuration(model.videoDuration))")
+        }
+        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+        .foregroundStyle(BiCutTheme.muted)
+        .padding(.horizontal, 26)
+        .frame(height: 46)
+        .background(BiCutTheme.chrome)
+    }
+
+    private var sourceMetadata: String {
+        guard let asset = model.videoAsset else { return "" }
+        let width = Int(asset.naturalSize.width.rounded())
+        let height = Int(asset.naturalSize.height.rounded())
+        return "\(width)×\(height)  ·  \(Int(asset.frameRate.rounded())) fps  ·  \(formatShortDuration(asset.durationSeconds))  ·  \(ByteCountFormatter.string(fromByteCount: asset.fileSize, countStyle: .file))"
+    }
+
+    private func segmentTextColor(_ index: Int) -> Color {
+        [Color(red: 0.49, green: 0.50, blue: 1), Color(red: 0.0, green: 0.81, blue: 0.55), BiCutTheme.amber, Color(red: 1, green: 0.36, blue: 0.65)][index % 4]
+    }
+
+    private func segmentFillColor(_ index: Int) -> Color { segmentTextColor(index).opacity(0.14) }
+}
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.82 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
-func formatMMSS(_ s: Double) -> String {
-    guard s.isFinite else { return "0:00" }
-    let t = Int(s.rounded())
-    return String(format: "%d:%02d", t / 60, t % 60)
+func formatMMSS(_ seconds: Double) -> String {
+    guard seconds.isFinite else { return "0:00" }
+    let value = Int(seconds.rounded())
+    return String(format: "%d:%02d", value / 60, value % 60)
+}
+
+func formatTimestamp(_ seconds: Double) -> String {
+    guard seconds.isFinite else { return "00:00" }
+    let value = Int(seconds.rounded())
+    return String(format: "%02d:%02d", value / 60, value % 60)
+}
+
+func formatShortDuration(_ seconds: Double) -> String {
+    guard seconds.isFinite else { return "0s" }
+    if seconds >= 60 { return formatMMSS(seconds) }
+    let rounded = seconds.rounded()
+    return rounded == seconds ? "\(Int(rounded))s" : String(format: "%.1fs", seconds)
 }
 
 final class WindowDelegate: NSObject, NSWindowDelegate {
@@ -142,11 +281,16 @@ final class WindowDelegate: NSObject, NSWindowDelegate {
     init(model: AppViewModel) { self.model = model }
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         if model.phase.isExporting {
-            let a = NSAlert(); a.messageText = "正在导出中"; a.informativeText = "确定要取消吗？"
-            a.alertStyle = .warning; a.addButton(withTitle: "继续导出"); a.addButton(withTitle: "关闭")
-            if a.runModal() == .alertSecondButtonReturn { model.cancelExport(); return true }
+            let alert = NSAlert()
+            alert.messageText = "正在导出中"
+            alert.informativeText = "确定要取消吗？"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "继续导出")
+            alert.addButton(withTitle: "关闭")
+            if alert.runModal() == .alertSecondButtonReturn { model.cancelExport(); return true }
             return false
         }
-        NSApp.terminate(nil); return true
+        NSApp.terminate(nil)
+        return true
     }
 }

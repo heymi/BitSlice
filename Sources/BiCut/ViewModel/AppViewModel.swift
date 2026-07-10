@@ -27,6 +27,7 @@ final class AppViewModel {
     var config: ExportConfig
     var phase: AppPhase = .empty
     var segments: [SegmentInfo] = []
+    var recentVideos: [RecentVideo]
 
     // Player state
     var player: AVPlayer?
@@ -48,6 +49,13 @@ final class AppViewModel {
 
     init() {
         config = ExportConfig.load()
+        recentVideos = RecentVideo.loadAll()
+        // Output names are session-specific. Always start with an empty field
+        // instead of restoring a stale or malformed value from UserDefaults.
+        if !config.customTitle.isEmpty {
+            config.customTitle = ""
+            config.save()
+        }
         if let dir = config.outputDirectory {
             var isDir: ObjCBool = false
             if !FileManager.default.fileExists(atPath: dir.path, isDirectory: &isDir) || !isDir.boolValue {
@@ -81,12 +89,13 @@ final class AppViewModel {
             return
         }
 
-        do {
-            sourceBookmark = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-        } catch {
-            phase = .failed(message: "无法获取文件访问权限: \(error.localizedDescription)")
-            return
-        }
+        // Persist access when the app is sandboxed. The standalone SwiftPM build
+        // does not require a security-scoped bookmark and may not create one.
+        sourceBookmark = try? url.bookmarkData(
+            options: .withSecurityScope,
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        )
 
         // Set up player
         let p = AVPlayer(url: url)
@@ -96,10 +105,37 @@ final class AppViewModel {
         startTimeObserver()
 
         videoAsset = asset
+        rememberRecentVideo(asset, bookmark: sourceBookmark)
         let maxDur = max(15.0, asset.durationSeconds)
         if config.segmentDuration > maxDur { config.segmentDuration = maxDur }
         recalculateSegments()
         phase = .loaded
+    }
+
+    func openRecentVideo(_ recent: RecentVideo) async {
+        guard FileManager.default.fileExists(atPath: recent.url.path) else {
+            recentVideos.removeAll { $0.id == recent.id }
+            RecentVideo.saveAll(recentVideos)
+            return
+        }
+        await loadVideo(from: recent.url)
+    }
+
+    private func rememberRecentVideo(_ asset: VideoAsset, bookmark: Data?) {
+        let recent = RecentVideo(
+            path: asset.url.path,
+            fileName: asset.fileName,
+            width: Int(asset.naturalSize.width.rounded()),
+            height: Int(asset.naturalSize.height.rounded()),
+            frameRate: Int(asset.frameRate.rounded()),
+            fileSize: asset.fileSize,
+            lastOpenedAt: Date(),
+            bookmark: bookmark
+        )
+        recentVideos.removeAll { $0.path == recent.path }
+        recentVideos.insert(recent, at: 0)
+        recentVideos = Array(recentVideos.prefix(3))
+        RecentVideo.saveAll(recentVideos)
     }
 
     // MARK: - Player controls
@@ -119,7 +155,7 @@ final class AppViewModel {
     }
 
     func stepFrame(forward: Bool) {
-        guard let p = player else { return }
+        guard player != nil else { return }
         let fps = videoAsset?.frameRate ?? 30
         let delta = 1.0 / Double(fps)
         let newTime = forward ? currentTime + delta : currentTime - delta
@@ -141,9 +177,9 @@ final class AppViewModel {
         guard let p = player else { return }
         let interval = CMTime(seconds: 0.05, preferredTimescale: 600)
         timeObserver = p.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
-            guard let self else { return }
             let sec = CMTimeGetSeconds(time)
-            if sec.isFinite { self.currentTime = sec }
+            guard sec.isFinite else { return }
+            Task { @MainActor [weak self] in self?.currentTime = sec }
         }
     }
 
@@ -195,8 +231,13 @@ final class AppViewModel {
 
     /// Real-time preview of the first output file name
     var namingPreview: String {
+        guard hasValidOutputName else { return "—" }
         guard !segments.isEmpty else { return "—" }
         return segments.first?.fileName ?? "—"
+    }
+
+    var hasValidOutputName: Bool {
+        !config.customTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     /// Segment summary text
@@ -209,6 +250,36 @@ final class AppViewModel {
             return "\(count) 个视频 — \(count - 1) × \(dur)，最后 1 个 \(formatTime(last.durationSeconds))"
         }
         return "\(count) 个视频 — 每个 \(dur)"
+    }
+
+    var segmentSummaryEnglish: String {
+        let count = segments.count
+        guard count > 0 else { return "No clips yet." }
+        if count == 1 { return "Exports as one complete clip." }
+        let duration = formatShortDuration(config.segmentDuration)
+        if let last = segments.last, last.durationSeconds < config.segmentDuration {
+            return "Splits into \(count) clips. \(count - 1) × \(duration), last clip is \(formatShortDuration(last.durationSeconds))."
+        }
+        return "Splits into \(count) clips of \(duration)."
+    }
+
+    var destinationDisplayPath: String {
+        guard let directory = config.outputDirectory else { return "Choose output folder" }
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        return directory.path.replacingOccurrences(of: home, with: "~")
+    }
+
+    func requestReplacementFile() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.movie, .mpeg4Movie, .quickTimeMovie, .video]
+        panel.prompt = "Replace"
+        panel.begin { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+            Task { @MainActor in await self?.loadVideo(from: url) }
+        }
     }
 
     // MARK: - Settings
@@ -238,14 +309,13 @@ final class AppViewModel {
 
     func setCustomTitle(_ title: String) {
         config.customTitle = title
-        config.save()
         recalculateSegments()
     }
 
     // MARK: - Export
 
     func startExport() async {
-        guard let asset = videoAsset, !segments.isEmpty else { return }
+        guard let asset = videoAsset, !segments.isEmpty, hasValidOutputName else { return }
         guard let outputDir = config.outputDirectory else {
             phase = .failed(message: "请先选择导出目录。")
             return

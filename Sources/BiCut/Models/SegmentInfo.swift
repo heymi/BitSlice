@@ -49,7 +49,8 @@ func calculateSegments(
         let endSec = min(startSec + segSec, totalSec)
         let start = CMTime(seconds: startSec, preferredTimescale: totalDuration.timescale)
         let end = CMTime(seconds: endSec, preferredTimescale: totalDuration.timescale)
-        let name = "\(baseName)-\(i + 1).\(fileExtension)"
+        let sequence = String(format: "%02d", i + 1)
+        let name = "\(baseName)_\(sequence).\(fileExtension)"
         return SegmentInfo(index: i, start: start, end: end, fileName: name)
     }
 }

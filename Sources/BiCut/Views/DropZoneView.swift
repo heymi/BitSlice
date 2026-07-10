@@ -1,41 +1,26 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// MARK: - Local UI state (replaces @State, unavailable w/ CLI tools)
-
 @Observable
 final class DropZoneLocalState {
     var isTargeted = false
     var showFileImporter = false
 }
 
-// MARK: - View
-
 struct DropZoneView: View {
     let model: AppViewModel
     private let local = DropZoneLocalState()
 
     var body: some View {
-        GroupBox {
-            if let asset = model.videoAsset {
-                loadedState(asset)
-            } else {
-                emptyState
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 24) {
+                uploadTarget
+                recentSection
             }
-        }
-        .dropZoneStyle(isTargeted: local.isTargeted)
-        .onDrop(
-            of: [.fileURL, .movie, .mpeg4Movie, .quickTimeMovie, .video],
-            isTargeted: Binding(
-                get: { local.isTargeted },
-                set: { local.isTargeted = $0 }
-            )
-        ) { providers in
-            handleDrop(providers: providers)
-            return true
-        }
-        .onTapGesture {
-            local.showFileImporter = true
+            .frame(maxWidth: 660)
+            .padding(.top, 40)
+            .padding(.bottom, 28)
+            .frame(maxWidth: .infinity)
         }
         .fileImporter(
             isPresented: Binding(
@@ -45,163 +30,147 @@ struct DropZoneView: View {
             allowedContentTypes: [.movie, .mpeg4Movie, .quickTimeMovie, .video],
             allowsMultipleSelection: false
         ) { result in
-            switch result {
-            case .success(let urls):
-                guard let url = urls.first else { return }
-                Task { await model.loadVideo(from: url) }
-            case .failure:
-                break
+            guard case .success(let urls) = result, let url = urls.first else { return }
+            Task { await model.loadVideo(from: url) }
+        }
+    }
+
+    private var uploadTarget: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 17)
+                    .fill(Color.white.opacity(0.025))
+                    .overlay(RoundedRectangle(cornerRadius: 17).stroke(BiCutTheme.border))
+                Image(systemName: "film.stack")
+                    .font(.system(size: 34, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(.white.opacity(0.78))
+            }
+            .frame(width: 78, height: 78)
+
+            VStack(spacing: 9) {
+                Text("Drag a video here, or click to browse")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.86))
+                Text("Supports MP4, MOV, MKV, AVI & more")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(BiCutTheme.muted)
             }
         }
-        .frame(minHeight: 80)
-    }
-
-    // MARK: - Empty state
-
-    @ViewBuilder
-    private var emptyState: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "film.stack")
-                .font(.system(size: 32))
-                .foregroundColor(.secondary)
-
-            Text("拖入视频文件")
-                .font(.headline)
-                .foregroundColor(.primary)
-
-            Text("或点击此处选择文件")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            Text("支持 MP4 / MOV 格式")
-                .font(.caption2)
-                .foregroundColor(.secondary.opacity(0.6))
+        .frame(maxWidth: .infinity, minHeight: 240)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(local.isTargeted ? BiCutTheme.blue.opacity(0.055) : Color.white.opacity(0.022))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    local.isTargeted ? BiCutTheme.blue.opacity(0.75) : Color.white.opacity(0.14),
+                    style: StrokeStyle(lineWidth: local.isTargeted ? 2 : 1.5, dash: [5, 4])
+                )
+        )
+        .scaleEffect(local.isTargeted ? 1.008 : 1)
+        .animation(.easeOut(duration: 0.18), value: local.isTargeted)
+        .contentShape(RoundedRectangle(cornerRadius: 20))
+        .onTapGesture { local.showFileImporter = true }
+        .onDrop(
+            of: [.fileURL, .movie, .mpeg4Movie, .quickTimeMovie, .video],
+            isTargeted: Binding(
+                get: { local.isTargeted },
+                set: { local.isTargeted = $0 }
+            )
+        ) { providers in
+            handleDrop(providers)
+            return true
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
     }
 
-    // MARK: - Loaded state
-
     @ViewBuilder
-    private func loadedState(_ asset: VideoAsset) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "film")
-                .font(.system(size: 24))
-                .foregroundColor(.accentColor)
+    private var recentSection: some View {
+        if !model.recentVideos.isEmpty {
+            VStack(spacing: 12) {
+                HStack {
+                    Label("RECENTLY PROCESSED", systemImage: "clock.arrow.circlepath")
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(1.2)
+                        .foregroundStyle(BiCutTheme.muted)
+                        .labelStyle(AmberIconLabelStyle())
+                    Spacer()
+                    Text("Local files")
+                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(BiCutTheme.muted)
+                }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(asset.fileName)
-                    .font(.headline)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-
-                if asset.isMetadataLoaded {
-                    HStack(spacing: 12) {
-                        Label(formatTimeDetailed(asset.durationSeconds), systemImage: "clock")
-                        Label(asset.hasVideoTrack ? resolutionLabel(asset) : "无视频", systemImage: "rectangle.on.rectangle")
-                        Label("\(Int(asset.frameRate)) fps", systemImage: "livephoto")
-                        if !asset.videoCodec.isEmpty {
-                            Label(asset.videoCodec, systemImage: "gearshape")
-                        }
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                } else {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                            .scaleEffect(0.6)
-                            .frame(width: 12, height: 12)
-                        Text("正在加载视频信息...")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                VStack(spacing: 8) {
+                    ForEach(model.recentVideos) { recent in
+                        recentRow(recent)
                     }
                 }
             }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(formatBytes(asset.fileSize))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-
-                Button("更换") {
-                    local.showFileImporter = true
-                }
-                .font(.caption)
-                .buttonStyle(.link)
-            }
         }
-        .padding(.vertical, 8)
     }
 
-    // MARK: - Helpers
+    private func recentRow(_ recent: RecentVideo) -> some View {
+        Button { Task { await model.openRecentVideo(recent) } } label: {
+            HStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 11)
+                        .fill(Color.white.opacity(0.025))
+                        .overlay(RoundedRectangle(cornerRadius: 11).stroke(BiCutTheme.border))
+                    Image(systemName: "play.rectangle")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(BiCutTheme.muted)
+                }
+                .frame(width: 48, height: 48)
 
-    private func handleDrop(providers: [NSItemProvider]) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text(recent.fileName)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text("\(recent.width)×\(recent.height)  ·  \(recent.frameRate) fps  ·  \(formattedBytes(recent.fileSize))")
+                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(BiCutTheme.muted)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.18))
+            }
+            .padding(.horizontal, 15)
+            .frame(maxWidth: .infinity, minHeight: 66)
+            .background(RoundedRectangle(cornerRadius: 15).fill(BiCutTheme.panel))
+            .overlay(RoundedRectangle(cornerRadius: 15).stroke(BiCutTheme.border))
+        }
+        .buttonStyle(ScaleButtonStyle())
+    }
+
+    private func handleDrop(_ providers: [NSItemProvider]) {
         for provider in providers {
             if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
                 provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, error in
                     guard error == nil,
                           let data = item as? Data,
-                          let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
-                    Task { @MainActor in
-                        await model.loadVideo(from: url)
-                    }
+                          let url = URL(dataRepresentation: data, relativeTo: nil)
+                    else { return }
+                    Task { @MainActor in await model.loadVideo(from: url) }
                 }
                 return
-            }
-            for type in [UTType.movie.identifier, UTType.mpeg4Movie.identifier, UTType.quickTimeMovie.identifier] {
-                if provider.hasItemConformingToTypeIdentifier(type) {
-                    provider.loadItem(forTypeIdentifier: type, options: nil) { item, error in
-                        guard error == nil, let url = item as? URL else { return }
-                        Task { @MainActor in
-                            await model.loadVideo(from: url)
-                        }
-                    }
-                    return
-                }
             }
         }
     }
 
-    private func resolutionLabel(_ asset: VideoAsset) -> String {
-        let w = Int(asset.naturalSize.width.rounded())
-        let h = Int(asset.naturalSize.height.rounded())
-        return "\(w)×\(h)"
-    }
-
-    private func formatBytes(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
+    private func formattedBytes(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
     }
 }
 
-// MARK: - Custom group box style for drop zone
-
-struct DropZoneStyle: ViewModifier {
-    let isTargeted: Bool
-
-    func body(content: Content) -> some View {
-        content
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(
-                        isTargeted ? Color.accentColor : Color.secondary.opacity(0.3),
-                        style: StrokeStyle(
-                            lineWidth: isTargeted ? 2.5 : 1.5,
-                            dash: [8, 4]
-                        )
-                    )
-            )
-            .scaleEffect(isTargeted ? 1.02 : 1.0)
-            .animation(.easeOut(duration: 0.2), value: isTargeted)
-    }
-}
-
-extension View {
-    func dropZoneStyle(isTargeted: Bool) -> some View {
-        modifier(DropZoneStyle(isTargeted: isTargeted))
+private struct AmberIconLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 9) {
+            configuration.icon.foregroundStyle(BiCutTheme.amber)
+            configuration.title
+        }
     }
 }
