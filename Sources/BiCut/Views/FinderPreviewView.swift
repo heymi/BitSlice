@@ -24,12 +24,15 @@ struct FinderPreviewView: View {
                 outputSummary
 
                 HStack(spacing: 10) {
-                    Button("Done") { model.resetToIdle() }
+                    Button { model.resetToIdle() } label: {
+                        Text("Done")
+                            .padding(.horizontal, 18)
+                            .frame(height: 38)
+                            .background(Capsule().fill(Color.white.opacity(0.09)))
+                            .contentShape(Capsule())
+                    }
                         .buttonStyle(ScaleButtonStyle())
                         .foregroundStyle(.white.opacity(0.72))
-                        .padding(.horizontal, 18)
-                        .frame(height: 38)
-                        .background(Capsule().fill(Color.white.opacity(0.09)))
 
                     Button {
                         if let directory = model.config.outputDirectory {
@@ -41,6 +44,7 @@ struct FinderPreviewView: View {
                             .padding(.horizontal, 18)
                             .frame(height: 38)
                             .background(Capsule().fill(BiCutTheme.blue))
+                            .contentShape(Capsule())
                     }
                     .buttonStyle(ScaleButtonStyle())
                     .foregroundStyle(.white)

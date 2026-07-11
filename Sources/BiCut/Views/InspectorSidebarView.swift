@@ -53,17 +53,20 @@ struct InspectorSidebarView: View {
 
             HStack(spacing: 6) {
                 ForEach(SegmentDurationPreset.allCases) { preset in
-                    Button(preset.displayName) {
+                    Button {
                         model.setSegmentDuration(preset.seconds)
+                    } label: {
+                        Text(preset.displayName)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(isSelected(preset) ? .white : BiCutTheme.muted)
+                            .frame(maxWidth: .infinity, minHeight: 30)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(isSelected(preset) ? BiCutTheme.blue.opacity(0.65) : Color.white.opacity(0.055))
+                            )
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(isSelected(preset) ? .white : BiCutTheme.muted)
-                    .frame(maxWidth: .infinity, minHeight: 30)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(isSelected(preset) ? BiCutTheme.blue.opacity(0.65) : Color.white.opacity(0.055))
-                    )
                 }
             }
 
@@ -152,6 +155,7 @@ struct InspectorSidebarView: View {
                             .foregroundStyle(model.config.outputFormat == format ? .white.opacity(0.9) : BiCutTheme.muted)
                             .frame(maxWidth: .infinity, minHeight: 34)
                             .background(RoundedRectangle(cornerRadius: 8).fill(model.config.outputFormat == format ? Color.white.opacity(0.11) : .clear))
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(ScaleButtonStyle())
                 }
@@ -187,12 +191,16 @@ struct InspectorSidebarView: View {
                     .foregroundStyle(.white.opacity(0.63))
                     .lineLimit(1).truncationMode(.middle)
                 Spacer(minLength: 4)
-                Button("Browse…") { pickFolder() }
+                Button { pickFolder() } label: {
+                    Text("Browse…")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.72))
+                        .padding(.horizontal, 12)
+                        .frame(height: 28)
+                        .background(Capsule().fill(Color.white.opacity(0.1)))
+                        .contentShape(Capsule())
+                }
                     .buttonStyle(.plain)
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.72))
-                    .padding(.horizontal, 12).frame(height: 28)
-                    .background(Capsule().fill(Color.white.opacity(0.1)))
             }
             .padding(.horizontal, 14)
             .frame(height: 52)
@@ -210,6 +218,7 @@ struct InspectorSidebarView: View {
                 .frame(maxWidth: .infinity, minHeight: 42)
                 .background(RoundedRectangle(cornerRadius: BiCutTheme.controlRadius).fill(BiCutTheme.blue))
                 .shadow(color: BiCutTheme.blue.opacity(0.3), radius: 12, y: 5)
+                .contentShape(Rectangle())
         }
         .buttonStyle(ScaleButtonStyle())
         .foregroundStyle(.white)
@@ -234,6 +243,7 @@ struct InspectorSidebarView: View {
             Image(systemName: icon).font(.system(size: 12, weight: .bold))
                 .foregroundStyle(.white.opacity(0.6)).frame(width: 34, height: 34)
                 .background(Circle().fill(Color.white.opacity(0.07)))
+                .contentShape(Circle())
         }
         .buttonStyle(ScaleButtonStyle())
     }

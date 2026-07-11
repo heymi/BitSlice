@@ -107,6 +107,7 @@ struct ContentView: View {
                     .font(.system(size: 13, weight: .semibold))
                     .padding(.horizontal, 17).frame(height: 36)
                     .background(Capsule().fill(Color.white.opacity(0.10)))
+                    .contentShape(Capsule())
             }
             .buttonStyle(ScaleButtonStyle())
             .foregroundStyle(.white.opacity(0.72))
@@ -170,8 +171,9 @@ struct ContentView: View {
                             .font(.system(size: 11, weight: .semibold, design: .monospaced))
                             .foregroundStyle(segmentTextColor(index))
                             .frame(width: max(48, (geometry.size.width - CGFloat(max(model.segments.count - 1, 0)) * 4) * fraction), height: 38)
-                                .background(RoundedRectangle(cornerRadius: 9).fill(model.activeSegmentIndex == index ? segmentTextColor(index).opacity(0.24) : segmentFillColor(index)))
-                                .shadow(color: model.activeSegmentIndex == index ? segmentTextColor(index).opacity(0.18) : .clear, radius: 7, y: 2)
+                            .background(RoundedRectangle(cornerRadius: 9).fill(model.activeSegmentIndex == index ? segmentTextColor(index).opacity(0.24) : segmentFillColor(index)))
+                            .shadow(color: model.activeSegmentIndex == index ? segmentTextColor(index).opacity(0.18) : .clear, radius: 7, y: 2)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(ScaleButtonStyle())
                     }

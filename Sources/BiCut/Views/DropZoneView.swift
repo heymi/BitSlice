@@ -144,6 +144,7 @@ struct DropZoneView: View {
             .padding(.horizontal, 15)
             .frame(maxWidth: .infinity, minHeight: 66)
             .background(RoundedRectangle(cornerRadius: 15).fill(BiCutTheme.panel))
+            .contentShape(Rectangle())
         }
         .buttonStyle(ScaleButtonStyle())
     }

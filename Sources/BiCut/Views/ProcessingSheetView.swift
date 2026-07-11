@@ -35,15 +35,18 @@ struct ProcessingSheetView: View {
                     logTerminal
 
                     // Cancel button
-                    Button("Cancel export") {
+                    Button {
                         model.cancelExport()
+                    } label: {
+                        Text("Cancel export")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.red.opacity(0.9))
+                            .padding(.horizontal, 14)
+                            .frame(height: 32)
+                            .background(Capsule().fill(Color.red.opacity(0.09)))
+                            .contentShape(Capsule())
                     }
                     .buttonStyle(ScaleButtonStyle())
-                    .foregroundStyle(.red.opacity(0.9))
-                    .font(.system(size: 12, weight: .semibold))
-                    .padding(.horizontal, 14)
-                    .frame(height: 32)
-                    .background(Capsule().fill(Color.red.opacity(0.09)))
                 }
             }
             .frame(width: 460)

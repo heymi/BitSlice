@@ -17,7 +17,7 @@ let window = NSWindow(
 window.title = "BiCut"
 window.titleVisibility = .hidden
 window.titlebarAppearsTransparent = true
-window.isMovableByWindowBackground = true
+configureWindowDragging(window)
 window.backgroundColor = NSColor(red: 0.055, green: 0.057, blue: 0.071, alpha: 1)
 window.minSize = NSSize(width: 1040, height: 700)
 window.contentView = NSHostingView(rootView: ContentView(model: model))
