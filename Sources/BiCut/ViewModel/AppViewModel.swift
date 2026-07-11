@@ -230,6 +230,7 @@ final class AppViewModel {
         segments = calculateSegments(
             totalDuration: asset.duration,
             segmentDuration: segCMTime,
+            frameDuration: asset.frameDuration,
             baseName: stem,
             fileExtension: config.outputFormat.fileExtension
         )

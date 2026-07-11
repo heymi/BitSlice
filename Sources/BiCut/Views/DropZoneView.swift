@@ -52,7 +52,7 @@ struct DropZoneView: View {
                 Text("Drag a video here, or click to browse")
                     .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(.white.opacity(0.86))
-                Text("Supports MP4, MOV, MKV, AVI & more")
+                Text("Supports MP4, MOV & M4V")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(BiCutTheme.muted)
             }

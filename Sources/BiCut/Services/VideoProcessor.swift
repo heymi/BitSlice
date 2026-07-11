@@ -286,7 +286,7 @@ final class VideoProcessor: @unchecked Sendable {
         }
 
         let sampleRate = basicDescription.mSampleRate > 0 ? basicDescription.mSampleRate : 48_000
-        let channelCount = max(1, min(Int(basicDescription.mChannelsPerFrame), 2))
+        let channelCount = max(1, Int(basicDescription.mChannelsPerFrame))
         let output = AVAssetReaderTrackOutput(
             track: track,
             outputSettings: [
@@ -316,12 +316,12 @@ final class VideoProcessor: @unchecked Sendable {
             throw ExportError.configurationFailed("无法读取源音频格式")
         }
         let sampleRate = basicDescription.mSampleRate > 0 ? basicDescription.mSampleRate : 48_000
-        let channelCount = max(1, min(Int(basicDescription.mChannelsPerFrame), 2))
+        let channelCount = max(1, Int(basicDescription.mChannelsPerFrame))
         return [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVSampleRateKey: sampleRate,
             AVNumberOfChannelsKey: channelCount,
-            AVEncoderBitRateKey: channelCount == 1 ? 128_000 : 192_000
+            AVEncoderBitRateKey: max(128_000, channelCount * 96_000)
         ]
     }
 
@@ -333,7 +333,7 @@ final class VideoProcessor: @unchecked Sendable {
         sourceDataRate: Float
     ) -> [String: Any] {
         var compression: [String: Any] = [
-            AVVideoExpectedSourceFrameRateKey: max(frameRate, 1),
+            AVVideoExpectedSourceFrameRateKey: frameRate > 0 ? frameRate : 30,
             AVVideoMaxKeyFrameIntervalDurationKey: 1.0,
             AVVideoProfileLevelKey: codec == .hevc
                 ? kVTProfileLevel_HEVC_Main_AutoLevel as String
@@ -384,7 +384,7 @@ final class VideoProcessor: @unchecked Sendable {
         if minimum.isValid, minimum.isNumeric, CMTimeCompare(minimum, .zero) > 0 {
             return minimum
         }
-        return CMTime(seconds: 1 / Double(max(frameRate, 1)), preferredTimescale: 60_000)
+        return CMTime(seconds: 1 / Double(frameRate > 0 ? frameRate : 30), preferredTimescale: 60_000)
     }
 
     private func buildVideoComposition(
