@@ -84,6 +84,12 @@ enum SegmentDurationPreset: Int, CaseIterable, Identifiable {
     }
 }
 
+func validSegmentDuration(_ requested: TimeInterval, videoDuration: TimeInterval) -> TimeInterval {
+    let lowerBounded = max(1, requested)
+    guard videoDuration >= 1 else { return lowerBounded }
+    return min(lowerBounded, videoDuration)
+}
+
 enum ExportResolution: String, CaseIterable, Codable {
     case original
     case hd720

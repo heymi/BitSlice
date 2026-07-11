@@ -110,8 +110,11 @@ final class AppViewModel {
 
         videoAsset = asset
         rememberRecentVideo(asset, bookmark: sourceBookmark)
-        let maxDur = max(15.0, asset.durationSeconds)
-        if config.segmentDuration > maxDur { config.segmentDuration = maxDur }
+        let validDuration = validSegmentDuration(config.segmentDuration, videoDuration: asset.durationSeconds)
+        if config.segmentDuration != validDuration {
+            config.segmentDuration = validDuration
+            config.save()
+        }
         recalculateSegments()
         phase = .loaded
     }
@@ -285,7 +288,7 @@ final class AppViewModel {
 
     func setSegmentDuration(_ seconds: TimeInterval) {
         guard seconds >= 1 else { return }
-        config.segmentDuration = seconds
+        config.segmentDuration = validSegmentDuration(seconds, videoDuration: videoDuration)
         config.save()
         recalculateSegments()
     }

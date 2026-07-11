@@ -61,4 +61,11 @@ struct ExportPlanningTests {
         #expect(PreciseExportCompatibility.validate(fileExtension: "mov", codecFourCC: "ap4h") != nil)
     }
 
+    @Test func customDurationStaysInsideSliderRange() {
+        #expect(validSegmentDuration(300, videoDuration: 234) == 234)
+        #expect(validSegmentDuration(0, videoDuration: 234) == 1)
+        #expect(validSegmentDuration(60, videoDuration: 234) == 60)
+        #expect(validSegmentDuration(60, videoDuration: 0) == 60)
+    }
+
 }
