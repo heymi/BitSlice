@@ -17,10 +17,10 @@ struct ProcessingSheetView: View {
             VStack(spacing: 20) {
                 if case .exporting(let current, let total, let overall, _) = model.phase {
                     VStack(spacing: 6) {
-                        Text("Exporting your clips")
+                        Text("正在精确分片")
                             .font(.system(size: 19, weight: .bold))
                             .foregroundStyle(.white.opacity(0.9))
-                        Text("Keep BiCut open while we finish the files.")
+                        Text("正在按帧对齐并重新编码，请保持 BiCut 开启。")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(BiCutTheme.muted)
                     }

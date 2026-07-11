@@ -31,13 +31,13 @@ final class ExportPipeline: @unchecked Sendable {
     /// Runs the pipeline, calling `onProgress` after each segment completes
     /// and periodically during each segment's export.
     func run(
-        onProgress: @escaping @Sendable (Int, Int, Double, Double) -> Void
+        onProgress: @escaping @Sendable (Int, Int, Double, Double) -> Void,
+        onWarning: @escaping @Sendable (String) -> Void
     ) async throws -> ExportResult {
         Self.activePipeline = self
         defer { Self.activePipeline = nil }
 
         let total = segments.count
-        let needsReencode = config.resolution != .original
         let avAsset = asset.avAsset
 
         for (i, segment) in segments.enumerated() {
@@ -54,14 +54,16 @@ final class ExportPipeline: @unchecked Sendable {
                 asset: avAsset,
                 segment: segment,
                 outputURL: outputURL,
-                config: config,
-                needsReencode: needsReencode
+                config: config
             )
             currentProcessor = processor
 
             processor.onProgress = { segProgress in
                 let overall = (Double(i) + segProgress) / Double(max(total, 1))
                 onProgress(i, total, overall, segProgress)
+            }
+            processor.onWarning = { warning in
+                onWarning(warning)
             }
 
             do {

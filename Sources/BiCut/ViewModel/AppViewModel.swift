@@ -84,6 +84,10 @@ final class AppViewModel {
             phase = .failed(message: "文件不包含视频轨道。")
             return
         }
+        if let compatibilityError = asset.preciseExportCompatibilityError {
+            phase = .failed(message: compatibilityError.localizedDescription)
+            return
+        }
         guard asset.durationSeconds >= 1 else {
             phase = .failed(message: "视频时长过短（< 1 秒）。")
             return
@@ -327,11 +331,36 @@ final class AppViewModel {
         }
 
         exportLogs = ["[BiCut Core] 初始化导出引擎...", "[BiCut Core] 分析视频轨道结构..."]
+
+        let preciseSegments: [SegmentInfo]
+        do {
+            preciseSegments = try await VideoAsset.resolveFrameAlignedSegments(
+                at: asset.url,
+                plannedSegments: segments
+            )
+            guard let firstSegment = preciseSegments.first else { return }
+            let preflightURL = outputDir.appendingPathComponent(firstSegment.fileName)
+            let preflight = VideoProcessor(
+                asset: asset.avAsset,
+                segment: firstSegment,
+                outputURL: preflightURL,
+                config: config
+            )
+            preflight.onWarning = { [weak self] warning in
+                Task { @MainActor in self?.appendExportLog("[兼容性提示] \(warning)") }
+            }
+            try await preflight.validateConfiguration()
+        } catch {
+            phase = .failed(message: "无法开始精确分片: \(error.localizedDescription)")
+            return
+        }
+        segments = preciseSegments
+
         exportStartTime = Date()
         exportSpeed = 0
         exportETA = 0
 
-        let pipeline = ExportPipeline(asset: asset, config: config, segments: segments, outputDir: outputDir)
+        let pipeline = ExportPipeline(asset: asset, config: config, segments: preciseSegments, outputDir: outputDir)
 
         phase = .exporting(currentSegment: 0, totalSegments: segments.count, overallProgress: 0, segmentProgress: 0)
 
@@ -346,22 +375,29 @@ final class AppViewModel {
 
         let result: ExportResult
         do {
-            result = try await pipeline.run { [weak self] current, total, overall, segment in
-                guard let self else { return }
-                Task { @MainActor in
-                    self.phase = .exporting(currentSegment: current, totalSegments: total, overallProgress: overall, segmentProgress: segment)
-                    let segName = self.segments[safe: current]?.fileName ?? "?"
-                    if segment > 0.05 {
-                        self.appendExportLog("[Chunk \(current + 1)/\(total)] \(segName) — \(Int(segment * 100))%")
+            result = try await pipeline.run(
+                onProgress: { [weak self] current, total, overall, segment in
+                    guard let self else { return }
+                    Task { @MainActor in
+                        self.phase = .exporting(currentSegment: current, totalSegments: total, overallProgress: overall, segmentProgress: segment)
+                        let segName = self.segments[safe: current]?.fileName ?? "?"
+                        if segment > 0.05 {
+                            self.appendExportLog("[Chunk \(current + 1)/\(total)] \(segName) — \(Int(segment * 100))%")
+                        }
+                        // Update telemetry
+                        if let start = self.exportStartTime, overall > 0.01 {
+                            let elapsed = Date().timeIntervalSince(start)
+                            self.exportSpeed = elapsed > 0 ? overall / elapsed * (self.videoDuration) : 0
+                            self.exportETA = overall > 0 ? elapsed / overall - elapsed : 0
+                        }
                     }
-                    // Update telemetry
-                    if let start = self.exportStartTime, overall > 0.01 {
-                        let elapsed = Date().timeIntervalSince(start)
-                        self.exportSpeed = elapsed > 0 ? overall / elapsed * (self.videoDuration) : 0
-                        self.exportETA = overall > 0 ? elapsed / overall - elapsed : 0
+                },
+                onWarning: { [weak self] warning in
+                    Task { @MainActor in
+                        self?.appendExportLog("[兼容性提示] \(warning)")
                     }
                 }
-            }
+            )
         } catch is CancellationError {
             if assertionID != 0 { IOPMAssertionRelease(assertionID) }
             exportLogs.append("[BiCut Core] 导出已取消")

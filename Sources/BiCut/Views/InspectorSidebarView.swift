@@ -13,6 +13,7 @@ struct InspectorSidebarView: View {
                     .padding(.bottom, 26)
 
                 durationSection
+                preciseModeNotice
                 sectionSpacing
                 namingSection
                 sectionSpacing
@@ -50,6 +51,41 @@ struct InspectorSidebarView: View {
                     .disabled(model.config.segmentDuration >= model.videoDuration)
             }
 
+            HStack(spacing: 6) {
+                ForEach(SegmentDurationPreset.allCases) { preset in
+                    Button(preset.displayName) {
+                        model.setSegmentDuration(preset.seconds)
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(isSelected(preset) ? .white : BiCutTheme.muted)
+                    .frame(maxWidth: .infinity, minHeight: 30)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(isSelected(preset) ? BiCutTheme.blue.opacity(0.65) : Color.white.opacity(0.055))
+                    )
+                }
+            }
+
+            HStack(spacing: 10) {
+                Text("自定义")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(BiCutTheme.muted)
+                TextField("秒", value: Binding(
+                    get: { model.config.segmentDuration },
+                    set: { model.setSegmentDuration(max(1, $0.rounded())) }
+                ), format: .number.precision(.fractionLength(0)))
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .multilineTextAlignment(.trailing)
+                    .padding(.horizontal, 10)
+                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .background(controlShape)
+                Text("秒")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(BiCutTheme.muted)
+            }
+
             Label(model.segmentSummaryEnglish, systemImage: "info.circle")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(Color(red: 0.37, green: 0.65, blue: 1))
@@ -57,6 +93,20 @@ struct InspectorSidebarView: View {
                 .frame(maxWidth: .infinity, minHeight: 42, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: 10).fill(BiCutTheme.blue.opacity(0.075)))
         }
+    }
+
+    private var preciseModeNotice: some View {
+        Label {
+            Text("精确分片 · 切点按源视频帧对齐，输出会重新编码以避免关键帧偏移。")
+        } icon: {
+            Image(systemName: "scope")
+        }
+        .font(.system(size: 11, weight: .medium))
+        .foregroundStyle(.white.opacity(0.58))
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.035)))
+        .padding(.top, 16)
     }
 
     private var namingSection: some View {
@@ -186,6 +236,10 @@ struct InspectorSidebarView: View {
                 .background(Circle().fill(Color.white.opacity(0.07)))
         }
         .buttonStyle(ScaleButtonStyle())
+    }
+
+    private func isSelected(_ preset: SegmentDurationPreset) -> Bool {
+        abs(model.config.segmentDuration - preset.seconds) < 0.5
     }
 
     private func resolutionLabel(_ resolution: ExportResolution) -> String {

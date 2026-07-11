@@ -11,6 +11,12 @@ let package = Package(
         .executableTarget(
             name: "BiCut",
             path: "Sources/BiCut"
+        ),
+        .testTarget(
+            name: "BiCutTests",
+            dependencies: ["BiCut"],
+            path: "Tests/BiCutTests",
+            exclude: ["LONG_MEDIA_GATE.md"]
         )
     ]
 )

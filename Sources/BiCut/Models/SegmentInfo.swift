@@ -34,6 +34,7 @@ struct SegmentInfo: Identifiable, Equatable {
 func calculateSegments(
     totalDuration: CMTime,
     segmentDuration: CMTime,
+    frameDuration: CMTime? = nil,
     baseName: String,
     fileExtension: String
 ) -> [SegmentInfo] {
@@ -42,17 +43,42 @@ func calculateSegments(
 
     guard totalSec > 0, segSec > 0 else { return [] }
 
-    let count = max(1, Int(ceil(totalSec / segSec)))
+    var boundaries: [CMTime] = [.zero]
+    var requestedBoundary = segSec
+    while requestedBoundary < totalSec {
+        let boundary = snapToNearestFrame(
+            CMTime(seconds: requestedBoundary, preferredTimescale: totalDuration.timescale),
+            frameDuration: frameDuration
+        )
+        if CMTimeCompare(boundary, boundaries.last!) > 0,
+           CMTimeCompare(boundary, totalDuration) < 0 {
+            boundaries.append(boundary)
+        }
+        requestedBoundary += segSec
+    }
+    boundaries.append(totalDuration)
 
-    return (0 ..< count).map { i in
-        let startSec = Double(i) * segSec
-        let endSec = min(startSec + segSec, totalSec)
-        let start = CMTime(seconds: startSec, preferredTimescale: totalDuration.timescale)
-        let end = CMTime(seconds: endSec, preferredTimescale: totalDuration.timescale)
+    return (0 ..< boundaries.count - 1).map { i in
+        let start = boundaries[i]
+        let end = boundaries[i + 1]
         let sequence = String(format: "%02d", i + 1)
         let name = "\(baseName)_\(sequence).\(fileExtension)"
         return SegmentInfo(index: i, start: start, end: end, fileName: name)
     }
+}
+
+private func snapToNearestFrame(_ time: CMTime, frameDuration: CMTime?) -> CMTime {
+    guard let frameDuration,
+          frameDuration.isValid,
+          frameDuration.isNumeric,
+          CMTimeCompare(frameDuration, .zero) > 0
+    else { return time }
+
+    let frame = CMTimeGetSeconds(frameDuration)
+    let seconds = CMTimeGetSeconds(time)
+    guard frame.isFinite, frame > 0, seconds.isFinite else { return time }
+    let frameIndex = (seconds / frame).rounded()
+    return CMTimeMultiplyByFloat64(frameDuration, multiplier: frameIndex)
 }
 
 // MARK: - Formatting
