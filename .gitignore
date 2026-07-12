@@ -1,4 +1,7 @@
 .build/
+build/
+dist/
+.asc/
 DerivedData/
 *.xcuserdata
 .DS_Store

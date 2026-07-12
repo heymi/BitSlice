@@ -1,0 +1,61 @@
+{
+  "features": [
+    "refractivity"
+  ],
+  "fill-specializations": [
+    {
+      "value": {
+        "linear-gradient": [
+          "display-p3:1.00000,0.32001,0.82825,1.00000",
+          "display-p3:1.00000,0.47608,0.72151,1.00000"
+        ]
+      }
+    },
+    {
+      "appearance": "dark",
+      "value": {
+        "automatic-gradient": "display-p3:0.22544,0.06682,0.00000,1.00000"
+      }
+    }
+  ],
+  "groups": [
+    {
+      "blend-mode": "screen",
+      "blur-material": 0,
+      "layers": [
+        {
+          "image-name": "MediaSlice.svg",
+          "name": "MediaSlice"
+        }
+      ],
+      "lighting": "individual",
+      "position": {
+        "scale": 3.76,
+        "translation-in-points": [
+          0,
+          10
+        ]
+      },
+      "refractivity": {
+        "depth": 0.805078125,
+        "enabled": true,
+        "strength": 0.54
+      },
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.52
+      },
+      "specular": false,
+      "translucency": {
+        "enabled": true,
+        "value": 0.24
+      }
+    }
+  ],
+  "supported-platforms": {
+    "circles": [
+      "watchOS"
+    ],
+    "squares": "shared"
+  }
+}

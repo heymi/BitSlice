@@ -1,0 +1,44 @@
+name: BeCut
+options:
+  bundleIdPrefix: app.becut
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  BeCut:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/BeCut
+    resources:
+      - path: Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.becut.BeCut
+        PRODUCT_NAME: BeCut
+        DEVELOPMENT_TEAM: 2HV6W3W4M4
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Apple Distribution"
+        CODE_SIGN_ENTITLEMENTS: BeCut.entitlements
+        PROVISIONING_PROFILE_SPECIFIER: "BeCut Mac App Store"
+        CODE_SIGNING_ALLOWED: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "2"
+        INFOPLIST_KEY_CFBundleDisplayName: BeCut
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        INFOPLIST_KEY_NSHighResolutionCapable: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.video
+        COMBINE_HIDPI_IMAGES: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        ONLY_ACTIVE_ARCH: NO
+        LD_RUNPATH_SEARCH_PATHS:
+          - "$(inherited)"
+          - "@executable_path/../Frameworks"
+    scheme:
+      testTargets: []
