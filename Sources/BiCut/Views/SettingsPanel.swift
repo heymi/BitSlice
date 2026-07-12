@@ -84,7 +84,7 @@ struct SettingsPanel: View {
                 set: { model.setResolution($0) }
             )) {
                 ForEach(ExportResolution.allCases, id: \.self) { res in
-                    Text(res.displayName).tag(res)
+                    Text(res.displayName()).tag(res)
                 }
             }
             .pickerStyle(.menu)

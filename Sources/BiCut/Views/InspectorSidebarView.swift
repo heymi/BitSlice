@@ -1,170 +1,348 @@
 import SwiftUI
 
+/// Right export rail — layout matches design mockup.
 struct InspectorSidebarView: View {
     let model: AppViewModel
+
+    private var lang: AppLanguage { model.appSettings.language }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
-                Label("EXPORT SETTINGS", systemImage: "gearshape")
-                    .font(.system(size: 13, weight: .bold))
-                    .tracking(1.4)
-                    .foregroundStyle(BiCutTheme.muted)
-                    .padding(.bottom, 26)
-
-                durationSection
-                preciseModeNotice
-                sectionSpacing
-                namingSection
-                sectionSpacing
-                formatSection
-                sectionSpacing
-                destinationSection
-                exportButton
+                strategyBlock
+                divider
+                durationBlock
+                divider
+                filenameBlock
+                divider
+                moreSettingsBlock
+                sectionGap
+                destinationBlock
+                exportBlock
             }
-            .padding(26)
+            .padding(.horizontal, 20)
+            .padding(.top, 18)
+            .padding(.bottom, 22)
         }
-        .background(.regularMaterial)
+        .background(BiCutTheme.canvas)
     }
 
-    private var durationSection: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            HStack {
-                sectionLabel("Slice Interval Duration")
-                Spacer()
-                Text(formatShortDuration(model.config.segmentDuration))
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    .foregroundStyle(Color(red: 0.31, green: 0.62, blue: 1))
-                    .padding(.horizontal, 9).padding(.vertical, 5)
-                    .background(Capsule().fill(BiCutTheme.blue.opacity(0.13)))
-            }
+    // MARK: Fast / Precise
 
-            HStack(spacing: 13) {
-                stepButton("minus") { model.setSegmentDuration(max(1, model.config.segmentDuration - 1)) }
-                    .disabled(model.config.segmentDuration <= 1)
-                Slider(value: Binding(
-                    get: { model.config.segmentDuration },
-                    set: { model.setSegmentDuration(max(1, $0.rounded())) }
-                ), in: 1 ... max(1, model.videoDuration))
-                .tint(BiCutTheme.blue)
-                stepButton("plus") { model.setSegmentDuration(min(model.videoDuration, model.config.segmentDuration + 1)) }
-                    .disabled(model.config.segmentDuration >= model.videoDuration)
-            }
+    private var strategyBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle(lang.t("Split Mode", "切片模式"))
 
-            HStack(spacing: 6) {
-                ForEach(SegmentDurationPreset.allCases) { preset in
+            HStack(spacing: 3) {
+                ForEach(SplittingStrategy.allCases) { strategy in
+                    let selected = model.config.splittingStrategy == strategy
                     Button {
-                        model.setSegmentDuration(preset.seconds)
+                        model.setSplittingStrategy(strategy)
                     } label: {
-                        Text(preset.displayName)
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(isSelected(preset) ? .white : BiCutTheme.muted)
-                            .frame(maxWidth: .infinity, minHeight: 30)
+                        Text(strategy.displayName(for: lang))
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(selected ? BiCutTheme.label : BiCutTheme.secondaryLabel)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 32)
                             .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(isSelected(preset) ? BiCutTheme.blue.opacity(0.65) : Color.white.opacity(0.055))
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(selected ? Color.white.opacity(0.10) : Color.clear)
                             )
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
             }
+            .padding(3)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(BiCutTheme.control)
+            )
 
-            HStack(spacing: 10) {
-                Text("自定义")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.muted)
-                TextField("秒", value: Binding(
-                    get: { model.config.segmentDuration },
-                    set: { model.setSegmentDuration(max(1, $0.rounded())) }
-                ), format: .number.precision(.fractionLength(0)))
-                    .textFieldStyle(.plain)
+            HStack(alignment: .top, spacing: 10) {
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(model.config.splittingStrategy == .fast ? BiCutTheme.amber : BiCutTheme.blue)
+                    .frame(width: 3, height: 40)
+                Text(model.config.splittingStrategy.shortDescription(for: lang))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(BiCutTheme.well)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+            )
+        }
+    }
+
+    // MARK: Duration
+
+    private var durationBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                sectionTitle(lang.t("Slice Interval", "切片时长"))
+                Spacer()
+                Text(formatShortDuration(model.config.segmentDuration))
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .multilineTextAlignment(.trailing)
-                    .padding(.horizontal, 10)
-                    .frame(maxWidth: .infinity, minHeight: 34)
-                    .background(controlShape)
-                Text("秒")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.muted)
+                    .foregroundStyle(BiCutTheme.blue)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(BiCutTheme.blueSoft))
             }
 
-            Label(model.segmentSummaryEnglish, systemImage: "info.circle")
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color(red: 0.37, green: 0.65, blue: 1))
-                .padding(.horizontal, 12)
-                .frame(maxWidth: .infinity, minHeight: 42, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 10).fill(BiCutTheme.blue.opacity(0.075)))
+            HStack(spacing: 12) {
+                stepCircle("minus") {
+                    model.setSegmentDuration(max(1, model.config.segmentDuration - 1))
+                }
+                .disabled(model.config.segmentDuration <= 1)
+
+                Slider(
+                    value: Binding(
+                        get: { model.config.segmentDuration },
+                        set: { model.setSegmentDuration(max(1, $0.rounded())) }
+                    ),
+                    in: 1 ... max(1, model.videoDuration)
+                )
+                .tint(BiCutTheme.blue)
+
+                stepCircle("plus") {
+                    model.setSegmentDuration(min(model.videoDuration, model.config.segmentDuration + 1))
+                }
+                .disabled(model.config.segmentDuration >= model.videoDuration)
+            }
+
+            HStack(spacing: 6) {
+                ForEach(SegmentDurationPreset.allCases) { preset in
+                    let selected = isPresetSelected(preset) && !model.isCustomDurationEntry
+                    let fitsVideo = preset.seconds <= max(model.videoDuration, 1)
+                    Button {
+                        model.selectDurationPreset(preset)
+                    } label: {
+                        Text(preset.displayName(for: lang))
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(selected ? BiCutTheme.onAccent : BiCutTheme.secondaryLabel)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 30)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(selected ? BiCutTheme.blue : BiCutTheme.control)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .stroke(selected ? Color.clear : BiCutTheme.stroke, lineWidth: 1)
+                            )
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!fitsVideo)
+                    .opacity(fitsVideo ? 1 : 0.35)
+                }
+
+                Button {
+                    model.beginCustomDurationEntry()
+                } label: {
+                    Text(lang.t("Custom", "自定义"))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(model.isCustomDurationEntry ? BiCutTheme.onAccent : BiCutTheme.secondaryLabel)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 30)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(model.isCustomDurationEntry ? BiCutTheme.blue : BiCutTheme.control)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .stroke(model.isCustomDurationEntry ? Color.clear : BiCutTheme.stroke, lineWidth: 1)
+                        )
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            if model.isCustomDurationEntry {
+                HStack(spacing: 10) {
+                    Text(lang.t("Seconds", "秒数"))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                    TextField(lang.t("sec", "秒"), value: Binding(
+                        get: { model.config.segmentDuration },
+                        set: { model.setSegmentDuration(max(1, $0.rounded()), customEntry: true) }
+                    ), format: .number.precision(.fractionLength(0)))
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundStyle(BiCutTheme.label)
+                        .multilineTextAlignment(.trailing)
+                        .padding(.horizontal, 10)
+                        .frame(maxWidth: .infinity, minHeight: 34)
+                        .background(fieldBackground)
+                    Text(lang.t("sec", "秒"))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                }
+            }
+
+            Label {
+                Text(model.segmentSummary)
+                    .font(.system(size: 12, weight: .medium))
+            } icon: {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 12))
+            }
+            .foregroundStyle(Color(red: 0.55, green: 0.72, blue: 1.0))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 11)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(BiCutTheme.blueSoft)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(BiCutTheme.blue.opacity(0.28), lineWidth: 1)
+            )
         }
     }
 
-    private var preciseModeNotice: some View {
-        Label {
-            Text("精确分片 · 切点按源视频帧对齐，输出会重新编码以避免关键帧偏移。")
-        } icon: {
-            Image(systemName: "scope")
-        }
-        .font(.system(size: 11, weight: .medium))
-        .foregroundStyle(.white.opacity(0.58))
-        .padding(.horizontal, 12)
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.035)))
-        .padding(.top, 16)
+    private func isPresetSelected(_ preset: SegmentDurationPreset) -> Bool {
+        abs(model.config.segmentDuration - preset.seconds) < 0.5
     }
 
-    private var namingSection: some View {
+    // MARK: Filename
+
+    private var filenameBlock: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionLabel("Clip name (optional)")
-            TextField("Use source filename", text: Binding(
+            sectionTitle(lang.t("Output Filename", "输出文件名"))
+
+            TextField(lang.t("Use source filename", "使用源文件名"), text: Binding(
                 get: { model.config.customTitle },
                 set: { model.setCustomTitle($0) }
             ))
             .textFieldStyle(.plain)
             .font(.system(size: 13, weight: .medium))
-            .padding(.horizontal, 15)
+            .foregroundStyle(BiCutTheme.label)
+            .padding(.horizontal, 14)
             .frame(height: 40)
-            .background(controlShape)
+            .background(fieldBackground)
 
             HStack(spacing: 10) {
                 Image(systemName: "doc.badge.gearshape")
-                    .foregroundStyle(Color(red: 0.30, green: 0.62, blue: 1))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("FIRST CLIP")
-                        .font(.system(size: 10, weight: .bold)).tracking(0.8)
-                        .foregroundStyle(BiCutTheme.muted)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(BiCutTheme.blue)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(lang.t("FIRST OUTPUT PREVIEW", "首个文件预览"))
+                        .font(.system(size: 9, weight: .bold))
+                        .tracking(0.7)
+                        .foregroundStyle(BiCutTheme.tertiaryLabel)
                     Text(model.namingPreview)
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.65))
-                        .lineLimit(1).truncationMode(.middle)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
             }
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: 62, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 13).fill(Color.white.opacity(0.025)))
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(BiCutTheme.well)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+            )
         }
     }
 
-    private var formatSection: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            sectionLabel("Output Format")
-            HStack(spacing: 3) {
-                ForEach(OutputFormat.allCases, id: \.self) { format in
-                    Button { model.setOutputFormat(format) } label: {
-                        Text(format.displayName)
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(model.config.outputFormat == format ? .white.opacity(0.9) : BiCutTheme.muted)
-                            .frame(maxWidth: .infinity, minHeight: 34)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(model.config.outputFormat == format ? Color.white.opacity(0.11) : .clear))
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(ScaleButtonStyle())
+    // MARK: More settings (codec + resolution)
+
+    private var moreSettingsBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                model.toggleMoreExportSettings()
+            } label: {
+                HStack(spacing: 8) {
+                    Text(lang.t("More Settings", "更多设置"))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(BiCutTheme.label)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(BiCutTheme.tertiaryLabel)
+                        .rotationEffect(.degrees(model.showMoreExportSettings ? 90 : 0))
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if model.showMoreExportSettings {
+                VStack(alignment: .leading, spacing: 16) {
+                    codecSection
+                    resolutionSection
                 }
             }
-            .padding(4)
-            .background(controlShape)
+        }
+    }
 
-            sectionLabel("Target Resolution")
-                .padding(.top, 5)
+    private var codecSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(lang.t("Codec Standard", "输出编码"))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(BiCutTheme.secondaryLabel)
+
+            HStack(spacing: 3) {
+                ForEach(VideoCodecPreference.allCases) { codec in
+                    codecChip(codec)
+                }
+            }
+            .padding(3)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(BiCutTheme.control)
+            )
+            .opacity(model.config.splittingStrategy == .fast ? 0.45 : 1)
+            .disabled(model.config.splittingStrategy == .fast)
+
+            if model.config.splittingStrategy == .fast {
+                Text(lang.t("Kept from source in Fast mode", "快速模式保留源编码"))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(BiCutTheme.tertiaryLabel)
+            }
+        }
+    }
+
+    private func codecChip(_ codec: VideoCodecPreference) -> some View {
+        let selected = model.config.videoCodec == codec
+        return Button {
+            model.setVideoCodec(codec)
+        } label: {
+            Text(codec.displayName)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(selected ? BiCutTheme.label : BiCutTheme.secondaryLabel)
+                .frame(maxWidth: .infinity)
+                .frame(height: 30)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(selected ? Color.white.opacity(0.10) : Color.clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var resolutionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(lang.t("Target Resolution", "目标分辨率"))
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(BiCutTheme.secondaryLabel)
+
             Picker("", selection: Binding(
                 get: { model.config.resolution },
                 set: { model.setResolution($0) }
@@ -175,97 +353,179 @@ struct InspectorSidebarView: View {
             }
             .labelsHidden()
             .pickerStyle(.menu)
-            .frame(maxWidth: .infinity, minHeight: 40)
-            .background(controlShape)
+            .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+            .padding(.horizontal, 10)
+            .background(fieldBackground)
+            .opacity(model.config.splittingStrategy == .fast ? 0.45 : 1)
+            .disabled(model.config.splittingStrategy == .fast)
+
+            if model.config.splittingStrategy == .fast {
+                Text(lang.t("Original resolution only in Fast mode", "快速模式仅输出原始分辨率"))
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(BiCutTheme.tertiaryLabel)
+            }
         }
     }
 
-    private var destinationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionLabel("Destination Location")
+    // MARK: Destination
+
+    private var destinationBlock: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionTitle(lang.t("Destination Location", "导出位置"))
+
             HStack(spacing: 10) {
-                Image(systemName: "folder")
+                Image(systemName: "folder.fill")
                     .foregroundStyle(BiCutTheme.amber)
                 Text(model.destinationDisplayPath)
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(.white.opacity(0.63))
-                    .lineLimit(1).truncationMode(.middle)
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
                 Spacer(minLength: 4)
                 Button { pickFolder() } label: {
-                    Text("Browse…")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.72))
-                        .padding(.horizontal, 12)
-                        .frame(height: 28)
-                        .background(Capsule().fill(Color.white.opacity(0.1)))
+                    Text(lang.t("Browse…", "选择…"))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(BiCutTheme.label)
+                        .padding(.horizontal, 11)
+                        .frame(height: 26)
+                        .background(Capsule().fill(Color.white.opacity(0.08)))
+                        .overlay(Capsule().stroke(BiCutTheme.stroke, lineWidth: 1))
                         .contentShape(Capsule())
                 }
-                    .buttonStyle(.plain)
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 14)
-            .frame(height: 52)
-            .background(controlShape)
+            .padding(.horizontal, 12)
+            .frame(height: 48)
+            .background(fieldBackground)
         }
     }
 
-    private var exportButton: some View {
-        Button {
-            if model.config.outputDirectory == nil { pickFolder() }
-            else { Task { await model.startExport() } }
-        } label: {
-            Label("Export \(model.segments.count) Clips", systemImage: "square.and.arrow.up")
-                .font(.system(size: 13, weight: .bold))
-                .frame(maxWidth: .infinity, minHeight: 42)
-                .background(RoundedRectangle(cornerRadius: BiCutTheme.controlRadius).fill(BiCutTheme.blue))
-                .shadow(color: BiCutTheme.blue.opacity(0.3), radius: 12, y: 5)
+    // MARK: Export CTA
+
+    private var exportBlock: some View {
+        VStack(spacing: 12) {
+            Button {
+                if model.config.outputDirectory == nil {
+                    pickFolder(andExport: true)
+                } else {
+                    Task { await model.startExport() }
+                }
+            } label: {
+                Label(
+                    lang.t(
+                        "Export Slices (\(model.segments.count) Clips)",
+                        "导出 \(model.segments.count) 个片段"
+                    ),
+                    systemImage: "plus"
+                )
+                .font(.system(size: 14, weight: .bold))
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(BiCutTheme.blueBright)
+                )
+                .shadow(color: BiCutTheme.blue.opacity(0.35), radius: 14, y: 6)
                 .contentShape(Rectangle())
+            }
+            .buttonStyle(ScaleButtonStyle())
+            .foregroundStyle(BiCutTheme.onAccent)
+            .disabled(model.segments.isEmpty || model.phase.isExporting || model.isLoadingVideo)
+            .opacity(model.segments.isEmpty || model.phase.isExporting || model.isLoadingVideo ? 0.45 : 1)
+            .padding(.top, 22)
+
+            Text(exportFooterCopy)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(BiCutTheme.tertiaryLabel)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .buttonStyle(ScaleButtonStyle())
-        .foregroundStyle(.white)
-        .disabled(model.segments.isEmpty || model.phase.isExporting)
-        .padding(.top, 24)
     }
 
-    private var sectionSpacing: some View {
-        Color.clear.frame(height: 34)
+    private var exportFooterCopy: String {
+        switch model.config.splittingStrategy {
+        case .fast:
+            lang.t(
+                "Fast mode copies media streams when possible. Cut starts may snap back to the previous keyframe.",
+                "快速模式尽量直通复制码流。切点可能回退到上一关键帧。"
+            )
+        case .precise:
+            lang.t(
+                "Precise mode re-encodes for frame-aligned cuts. Slower; keeps planned timing, frame rate, and orientation.",
+                "精确模式通过重编码实现帧级切点。更慢，但更贴合计划时长、帧率与方向。"
+            )
+        }
     }
 
-    private var controlShape: some View {
-        RoundedRectangle(cornerRadius: BiCutTheme.controlRadius).fill(BiCutTheme.control)
+    // MARK: Helpers
+
+    private var divider: some View {
+        Rectangle()
+            .fill(BiCutTheme.hairline)
+            .frame(height: 1)
+            .padding(.vertical, 20)
     }
 
-    private func sectionLabel(_ title: String) -> some View {
-        Text(title).font(.system(size: 13, weight: .bold)).foregroundStyle(.white.opacity(0.78))
+    private var sectionGap: some View {
+        Color.clear.frame(height: 16)
     }
 
-    private func stepButton(_ icon: String, action: @escaping () -> Void) -> some View {
+    private func sectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(BiCutTheme.label)
+    }
+
+    private var fieldBackground: some View {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(BiCutTheme.control)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+            )
+    }
+
+    private func stepCircle(_ icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(.system(size: 12, weight: .bold))
-                .foregroundStyle(.white.opacity(0.6)).frame(width: 34, height: 34)
-                .background(Circle().fill(Color.white.opacity(0.07)))
-                .contentShape(Circle())
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(BiCutTheme.control))
+                .overlay(Circle().stroke(BiCutTheme.stroke, lineWidth: 1))
         }
         .buttonStyle(ScaleButtonStyle())
-    }
-
-    private func isSelected(_ preset: SegmentDurationPreset) -> Bool {
-        abs(model.config.segmentDuration - preset.seconds) < 0.5
     }
 
     private func resolutionLabel(_ resolution: ExportResolution) -> String {
-        guard resolution == .original, let asset = model.videoAsset else { return resolution.displayName }
-        return "Original: \(Int(asset.naturalSize.width))×\(Int(asset.naturalSize.height))"
+        guard resolution == .original, let asset = model.videoAsset else {
+            return resolution.displayName(for: lang)
+        }
+        return lang.t(
+            "Original: \(Int(asset.naturalSize.width))×\(Int(asset.naturalSize.height))",
+            "原始: \(Int(asset.naturalSize.width))×\(Int(asset.naturalSize.height))"
+        )
     }
 
-    private func pickFolder() {
+    private func pickFolder(andExport: Bool = false) {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
-        panel.prompt = "Choose"
-        if let directory = model.config.outputDirectory { panel.directoryURL = directory }
+        panel.prompt = andExport
+            ? lang.t("Choose & Export", "选择并导出")
+            : lang.t("Choose", "选择")
+        if let directory = model.config.outputDirectory {
+            panel.directoryURL = directory
+        }
         panel.begin { response in
-            if response == .OK, let url = panel.url { model.setOutputDirectory(url) }
+            guard response == .OK, let url = panel.url else { return }
+            model.setOutputDirectory(url)
+            if andExport {
+                Task { @MainActor in
+                    await model.startExport()
+                }
+            }
         }
     }
 }

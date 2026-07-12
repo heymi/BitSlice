@@ -163,7 +163,7 @@ struct ProgressPanel: View {
             Spacer()
 
             Button("关闭") {
-                model.resetToIdle()
+                model.dismissFailure()
             }
             .buttonStyle(.borderless)
             .font(.caption)

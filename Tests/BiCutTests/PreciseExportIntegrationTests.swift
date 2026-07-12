@@ -30,6 +30,7 @@ struct PreciseExportIntegrationTests {
 
         for format in OutputFormat.allCases {
             var config = ExportConfig()
+            config.splittingStrategy = .precise
             config.outputFormat = format
             let outputURL = directory.appendingPathComponent("output.\(format.fileExtension)")
             let processor = VideoProcessor(
@@ -79,11 +80,13 @@ struct PreciseExportIntegrationTests {
                 rotated: item.rotated
             )
             let outputURL = directory.appendingPathComponent("output-\(item.fps).mp4")
+            var config = ExportConfig()
+            config.splittingStrategy = .precise
             let processor = VideoProcessor(
                 asset: AVURLAsset(url: sourceURL),
                 segment: SegmentInfo(index: 0, start: .zero, end: CMTime(seconds: 1, preferredTimescale: item.fps), fileName: outputURL.lastPathComponent),
                 outputURL: outputURL,
-                config: ExportConfig()
+                config: config
             )
 
             try await processor.export()
@@ -119,13 +122,15 @@ struct PreciseExportIntegrationTests {
         var totalOutputDuration = 0.0
         var totalAudioFrames = 0
 
+        var preciseConfig = ExportConfig()
+        preciseConfig.splittingStrategy = .precise
         for segment in resolvedSegments {
             let outputURL = directory.appendingPathComponent(segment.fileName)
             let processor = VideoProcessor(
                 asset: sourceAsset,
                 segment: segment,
                 outputURL: outputURL,
-                config: ExportConfig()
+                config: preciseConfig
             )
 
             try await processor.export()
@@ -151,6 +156,42 @@ struct PreciseExportIntegrationTests {
         }
         #expect(abs(totalOutputDuration - 1.5) <= 1.0 / 30.0)
         #expect(abs(totalAudioFrames - 72_000) <= 2_048)
+    }
+
+    @Test func fastPassthroughExportsPlayableSegment() async throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        let sourceURL = directory.appendingPathComponent("source-fast.mp4")
+        try await makeVideoFixture(at: sourceURL, frameRate: 30, frameCount: 90)
+        let sourceAsset = AVURLAsset(url: sourceURL)
+        var config = ExportConfig()
+        config.splittingStrategy = .fast
+        config.outputFormat = .mp4
+
+        let segment = SegmentInfo(
+            index: 0,
+            start: CMTime(seconds: 1, preferredTimescale: 30),
+            end: CMTime(seconds: 2, preferredTimescale: 30),
+            fileName: "fast_part_01.mp4"
+        )
+        let outputURL = directory.appendingPathComponent(segment.fileName)
+        let processor = VideoProcessor(
+            asset: sourceAsset,
+            segment: segment,
+            outputURL: outputURL,
+            config: config
+        )
+
+        try await processor.validateConfiguration()
+        try await processor.export()
+
+        let outputAsset = AVURLAsset(url: outputURL)
+        #expect(try await outputAsset.load(.isPlayable))
+        let duration = try await outputAsset.load(.duration)
+        // Passthrough may include a little extra from keyframe snap-back.
+        #expect(CMTimeGetSeconds(duration) > 0.5)
+        #expect(CMTimeGetSeconds(duration) <= 2.5)
     }
 }
 

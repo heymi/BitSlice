@@ -4,11 +4,12 @@ import Testing
 
 @Suite("Export planning")
 struct ExportPlanningTests {
-    @Test func defaultConfigurationUsesPreciseSplitting() {
+    @Test func defaultConfigurationUsesFastSplitting() {
         let config = ExportConfig()
 
-        #expect(config.splittingStrategy == .precise)
+        #expect(config.splittingStrategy == .fast)
         #expect(config.segmentDuration == 180)
+        #expect(SplittingStrategy.allCases == [.fast, .precise])
     }
 
     @Test func durationPresetsMatchProductPlan() {
@@ -29,7 +30,7 @@ struct ExportPlanningTests {
             fileExtension: "m4v"
         )
 
-        #expect(segments.map(\.fileName) == ["Interview_01.m4v", "Interview_02.m4v", "Interview_03.m4v"])
+        #expect(segments.map(\.fileName) == ["Interview_part_01.m4v", "Interview_part_02.m4v", "Interview_part_03.m4v"])
         #expect(segments.map(\.durationSeconds) == [60, 60, 5])
         #expect(segments[0].end == segments[1].start)
         #expect(segments[1].end == segments[2].start)

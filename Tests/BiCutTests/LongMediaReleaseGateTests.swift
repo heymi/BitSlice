@@ -56,11 +56,13 @@ struct LongMediaReleaseGateTests {
         var maximumDurationError = 0.0
         for segment in preciseSegments {
             let outputURL = outputDirectory.appendingPathComponent(segment.fileName)
+            var config = ExportConfig()
+            config.splittingStrategy = .precise
             let processor = VideoProcessor(
                 asset: sourceAsset,
                 segment: segment,
                 outputURL: outputURL,
-                config: ExportConfig()
+                config: config
             )
             if segment.index == 0 { try await processor.validateConfiguration() }
             try await processor.export()

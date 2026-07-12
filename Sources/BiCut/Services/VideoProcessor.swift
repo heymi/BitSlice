@@ -14,8 +14,9 @@ enum ExportResult {
 
 // MARK: - Video Processor
 
-/// Frame-accurate segment exporter. Every output is decoded and encoded again so
-/// segment boundaries cannot be pulled backwards to an earlier keyframe.
+/// Segment exporter supporting:
+/// - **fast**: passthrough/remux (stream copy); starts may snap to prior keyframes
+/// - **precise**: decode + re-encode so cuts stay frame-aligned
 final class VideoProcessor: @unchecked Sendable {
     private let asset: AVAsset
     private let segment: SegmentInfo
@@ -25,6 +26,8 @@ final class VideoProcessor: @unchecked Sendable {
     var onProgress: (@Sendable (Double) -> Void)?
     var onWarning: (@Sendable (String) -> Void)?
     private let cancellationState = OSAllocatedUnfairLock(initialState: false)
+    /// Non-Sendable AVFoundation session; only touched from export/cancel paths.
+    private nonisolated(unsafe) var activeExportSession: AVAssetExportSession?
 
     init(asset: AVAsset, segment: SegmentInfo, outputURL: URL, config: ExportConfig) {
         self.asset = asset
@@ -33,9 +36,120 @@ final class VideoProcessor: @unchecked Sendable {
         self.config = config
     }
 
-    func cancel() { cancellationState.withLock { $0 = true } }
+    func cancel() {
+        cancellationState.withLock { $0 = true }
+        activeExportSession?.cancelExport()
+        activeExportSession = nil
+    }
 
     func validateConfiguration() async throws {
+        switch config.splittingStrategy {
+        case .fast:
+            try await validateFastConfiguration()
+        case .precise:
+            try await validatePreciseConfiguration()
+        }
+    }
+
+    func export() async throws {
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+
+        let tracks = try await asset.load(.tracks)
+        guard tracks.contains(where: { $0.mediaType == .video }) else {
+            throw ExportError.noVideoTrack
+        }
+
+        let timeRange = CMTimeRange(start: segment.start, end: segment.end)
+        switch config.splittingStrategy {
+        case .fast:
+            try await exportFast(timeRange: timeRange)
+        case .precise:
+            guard let videoTrack = tracks.first(where: { $0.mediaType == .video }) else {
+                throw ExportError.noVideoTrack
+            }
+            try await exportPrecisely(
+                videoTrack: videoTrack,
+                audioTrack: tracks.first(where: { $0.mediaType == .audio }),
+                timeRange: timeRange
+            )
+        }
+    }
+
+    // MARK: - Fast (passthrough)
+
+    private func validateFastConfiguration() async throws {
+        guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
+            throw ExportError.configurationFailed("此素材不支持快速直通，请改用精确模式")
+        }
+        let types = session.supportedFileTypes
+        guard types.contains(config.outputFormat.avFileType) else {
+            throw ExportError.configurationFailed(
+                "快速模式无法以 \(config.outputFormat.displayName) 直通导出，请改用精确模式或更换输出格式"
+            )
+        }
+        if config.resolution != .original {
+            onWarning?("快速模式保留原始分辨率与源编码；缩放/编码选项仅在精确模式下生效。")
+        }
+    }
+
+    private func exportFast(timeRange: CMTimeRange) async throws {
+        if cancellationState.withLock({ $0 }) || Task.isCancelled {
+            throw CancellationError()
+        }
+
+        guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
+            throw ExportError.configurationFailed("无法创建快速导出会话")
+        }
+        guard session.supportedFileTypes.contains(config.outputFormat.avFileType) else {
+            throw ExportError.configurationFailed(
+                "快速模式无法写入 \(config.outputFormat.displayName)"
+            )
+        }
+
+        session.outputURL = outputURL
+        session.outputFileType = config.outputFormat.avFileType
+        session.timeRange = timeRange
+        // Allow the session to begin slightly early so the segment starts on a
+        // decodable keyframe (the typical passthrough trade-off).
+        session.canPerformMultiplePassesOverSourceMediaData = false
+
+        activeExportSession = session
+        defer { activeExportSession = nil }
+        onProgress?(0.05)
+
+        // AVAssetExportSession is not Sendable; confine to this export path.
+        nonisolated(unsafe) let exportSession = session
+        let status: AVAssetExportSession.Status = await withCheckedContinuation { continuation in
+            exportSession.exportAsynchronously {
+                continuation.resume(returning: exportSession.status)
+            }
+        }
+
+        if cancellationState.withLock({ $0 }) || Task.isCancelled || status == .cancelled {
+            try? FileManager.default.removeItem(at: outputURL)
+            throw CancellationError()
+        }
+
+        switch status {
+        case .completed:
+            onProgress?(1)
+        case .failed:
+            try? FileManager.default.removeItem(at: outputURL)
+            throw ExportError.writerFailed(exportSession.error?.localizedDescription ?? "快速导出失败")
+        case .cancelled:
+            try? FileManager.default.removeItem(at: outputURL)
+            throw CancellationError()
+        default:
+            try? FileManager.default.removeItem(at: outputURL)
+            throw ExportError.writerFailed("快速导出未完成（状态 \(status.rawValue)）")
+        }
+    }
+
+    // MARK: - Precise (re-encode)
+
+    private func validatePreciseConfiguration() async throws {
         let tracks = try await asset.load(.tracks)
         guard let videoTrack = tracks.first(where: { $0.mediaType == .video }) else {
             throw ExportError.noVideoTrack
@@ -49,7 +163,7 @@ final class VideoProcessor: @unchecked Sendable {
         let targetSize = effectiveTargetSize(sourceSize: sourceSize)
         let frameRate = try await videoTrack.load(.nominalFrameRate)
         let sourceDataRate = try await videoTrack.load(.estimatedDataRate)
-        let preferredCodec = try await sourceCodec(from: videoTrack)
+        let preferredCodec = resolveOutputCodec(source: try await sourceCodec(from: videoTrack))
         let preferredSettings = makeVideoSettings(
             codec: preferredCodec,
             targetSize: targetSize,
@@ -78,24 +192,6 @@ final class VideoProcessor: @unchecked Sendable {
                 throw ExportError.configurationFailed("\(config.outputFormat.displayName) 无法写入源音频轨道")
             }
         }
-    }
-
-    func export() async throws {
-        if FileManager.default.fileExists(atPath: outputURL.path) {
-            try FileManager.default.removeItem(at: outputURL)
-        }
-
-        let tracks = try await asset.load(.tracks)
-        guard let videoTrack = tracks.first(where: { $0.mediaType == .video }) else {
-            throw ExportError.noVideoTrack
-        }
-
-        let timeRange = CMTimeRange(start: segment.start, end: segment.end)
-        try await exportPrecisely(
-            videoTrack: videoTrack,
-            audioTrack: tracks.first(where: { $0.mediaType == .audio }),
-            timeRange: timeRange
-        )
     }
 
     // MARK: - Precise streaming pipeline
@@ -140,7 +236,7 @@ final class VideoProcessor: @unchecked Sendable {
             assetDuration: assetDuration
         )
 
-        let preferredCodec = try await sourceCodec(from: videoTrack)
+        let preferredCodec = resolveOutputCodec(source: try await sourceCodec(from: videoTrack))
         var videoSettings = makeVideoSettings(
             codec: preferredCodec,
             targetSize: targetSize,
@@ -424,6 +520,12 @@ final class VideoProcessor: @unchecked Sendable {
         case kCMVideoCodecType_HEVC, kCMVideoCodecType_HEVCWithAlpha: return .hevc
         default: return .h264
         }
+    }
+
+    private func resolveOutputCodec(source: AVVideoCodecType) -> AVVideoCodecType {
+        // Precise mode honors the user's codec preference.
+        _ = source
+        return config.videoCodec.avCodec
     }
 }
 

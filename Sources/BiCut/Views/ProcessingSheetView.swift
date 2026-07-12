@@ -6,44 +6,64 @@ struct ProcessingSheetView: View {
     let model: AppViewModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var isChinese: Bool {
+        model.appSettings.language == .simplifiedChinese
+    }
+
+    private var isFast: Bool {
+        model.config.splittingStrategy == .fast
+    }
+
+    private var exportTitle: String {
+        if isFast {
+            return isChinese ? "正在快速分片" : "Fast splitting"
+        }
+        return isChinese ? "正在精确分片" : "Precise splitting"
+    }
+
+    private var exportSubtitle: String {
+        if isFast {
+            return isChinese
+                ? "直通复制码流，尽量不重编码。切点可能略提前到关键帧。"
+                : "Stream-copying when possible. Cuts may snap slightly earlier to a keyframe."
+        }
+        return isChinese
+            ? "正在按帧对齐并重新编码，请保持 BiCut 开启。"
+            : "Aligning cuts to source frames and re-encoding. Keep BiCut open."
+    }
+
     var body: some View {
         ZStack {
-            // Backdrop
-            Color.black.opacity(0.42)
+            BiCutTheme.scrim
                 .ignoresSafeArea()
                 .onTapGesture {}
 
-            // Modal
             VStack(spacing: 20) {
                 if case .exporting(let current, let total, let overall, _) = model.phase {
                     VStack(spacing: 6) {
-                        Text("正在精确分片")
+                        Text(exportTitle)
                             .font(.system(size: 19, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.9))
-                        Text("正在按帧对齐并重新编码，请保持 BiCut 开启。")
+                            .foregroundStyle(BiCutTheme.label)
+                        Text(exportSubtitle)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(BiCutTheme.muted)
+                            .foregroundStyle(BiCutTheme.secondaryLabel)
+                            .multilineTextAlignment(.center)
                     }
 
-                    // Progress circle
                     progressCircle(current: current, total: total, overall: overall)
-
-                    // Telemetry panel
                     telemetryPanel(current: current, total: total, overall: overall)
-
-                    // Log terminal
                     logTerminal
 
-                    // Cancel button
                     Button {
                         model.cancelExport()
                     } label: {
-                        Text("Cancel export")
+                        Text(isChinese ? "取消导出" : "Cancel export")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.red.opacity(0.9))
+                            .foregroundStyle(BiCutTheme.danger)
                             .padding(.horizontal, 14)
                             .frame(height: 32)
-                            .background(Capsule().fill(Color.red.opacity(0.09)))
+                            .background(Capsule().fill(BiCutTheme.danger.opacity(0.10)))
+                            .overlay(Capsule().stroke(BiCutTheme.danger.opacity(0.22), lineWidth: 1))
                             .contentShape(Capsule())
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -51,11 +71,7 @@ struct ProcessingSheetView: View {
             }
             .frame(width: 460)
             .padding(32)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(BiCutTheme.panel)
-            )
-            .shadow(color: Color.black.opacity(0.35), radius: 40, x: 0, y: 20)
+            .bicutModalChrome()
         }
     }
 
@@ -63,36 +79,34 @@ struct ProcessingSheetView: View {
 
     private func progressCircle(current: Int, total: Int, overall: Double) -> some View {
         ZStack {
-            // Background ring
             Circle()
-                .stroke(Color.primary.opacity(0.1), lineWidth: 6)
+                .stroke(BiCutTheme.control, lineWidth: 6)
                 .frame(width: 100, height: 100)
 
-            // Progress ring
             Circle()
                 .trim(from: 0, to: CGFloat(overall))
                 .stroke(
                     AngularGradient(
-                        gradient: Gradient(colors: [.blue, .indigo, .purple]),
+                        gradient: Gradient(colors: [BiCutTheme.blue, .indigo, .purple]),
                         center: .center
                     ),
                     style: StrokeStyle(lineWidth: 6, lineCap: .round)
                 )
                 .frame(width: 100, height: 100)
                 .rotationEffect(.degrees(-90))
-            .animation(
-                reduceMotion ? nil : .interactiveSpring(response: 0.28, dampingFraction: 1),
-                value: overall
-            )
+                .animation(
+                    reduceMotion ? nil : .interactiveSpring(response: 0.28, dampingFraction: 1),
+                    value: overall
+                )
 
-            // Percentage
             VStack(spacing: 0) {
                 Text("\(Int(overall * 100))")
                     .font(.title.monospacedDigit())
                     .fontWeight(.bold)
+                    .foregroundStyle(BiCutTheme.label)
                 Text("%")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(BiCutTheme.secondaryLabel)
             }
         }
     }
@@ -101,13 +115,21 @@ struct ProcessingSheetView: View {
 
     private func telemetryPanel(current: Int, total: Int, overall: Double) -> some View {
         HStack(spacing: 32) {
-            TelemetryItem(label: "切片", value: "\(current + 1) / \(total)")
-            TelemetryItem(label: "速度", value: String(format: "%.1f×", model.exportSpeed))
+            TelemetryItem(label: isChinese ? "切片" : "Clip", value: "\(current + 1) / \(total)")
+            TelemetryItem(label: isChinese ? "速度" : "Speed", value: String(format: "%.1f×", model.exportSpeed))
             TelemetryItem(label: "ETA", value: formatETA(model.exportETA))
-            TelemetryItem(label: "目标", value: formatTimeDetailed(model.videoDuration))
+            TelemetryItem(label: isChinese ? "目标" : "Source", value: formatTimeDetailed(model.videoDuration))
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 13).fill(BiCutTheme.control))
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .fill(BiCutTheme.well)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .stroke(BiCutTheme.stroke, lineWidth: 1)
+        )
     }
 
     // MARK: - Log Terminal
@@ -119,10 +141,13 @@ struct ProcessingSheetView: View {
                     ForEach(Array(model.exportLogs.enumerated()), id: \.0) { _, line in
                         Text(line)
                             .font(.system(size: 10, design: .monospaced))
-                            .foregroundColor(line.contains("✅") ? Color.green : Color.green.opacity(0.8))
+                            .foregroundStyle(
+                                line.contains("✅")
+                                    ? BiCutTheme.success
+                                    : Color(red: 0.25, green: 0.72, blue: 0.42)
+                            )
                             .id(line)
                     }
-                    // Anchor for auto-scroll
                     Color.clear.frame(height: 1).id("bottom")
                 }
                 .onChange(of: model.exportLogs.count) {
@@ -137,8 +162,15 @@ struct ProcessingSheetView: View {
             }
         }
         .frame(height: 120)
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.black.opacity(0.42)))
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.black.opacity(0.88))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(BiCutTheme.stroke, lineWidth: 1)
+        )
     }
 }
 
@@ -153,9 +185,10 @@ struct TelemetryItem: View {
             Text(value)
                 .font(.caption.monospacedDigit())
                 .fontWeight(.semibold)
+                .foregroundStyle(BiCutTheme.label)
             Text(label)
                 .font(.system(size: 9))
-                .foregroundColor(.secondary)
+                .foregroundStyle(BiCutTheme.secondaryLabel)
         }
     }
 }

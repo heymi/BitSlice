@@ -12,17 +12,22 @@ struct DropZoneView: View {
     private let local = DropZoneLocalState()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    private var lang: AppLanguage { model.appSettings.language }
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing: 24) {
+            VStack(spacing: 22) {
                 uploadTarget
                 recentSection
             }
-            .frame(maxWidth: 660)
-            .padding(.top, 40)
-            .padding(.bottom, 28)
+            .frame(maxWidth: 560)
+            .padding(.horizontal, 32)
+            .padding(.top, 56)
+            .padding(.bottom, 36)
             .frame(maxWidth: .infinity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(BiCutTheme.canvas)
         .fileImporter(
             isPresented: Binding(
                 get: { local.showFileImporter },
@@ -37,45 +42,43 @@ struct DropZoneView: View {
     }
 
     private var uploadTarget: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 18) {
             ZStack {
-                RoundedRectangle(cornerRadius: 17)
-                    .fill(BiCutTheme.elevated)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(BiCutTheme.blueSoft)
                 Image(systemName: "film.stack")
-                    .font(.system(size: 34, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.white.opacity(0.78))
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(BiCutTheme.blue)
             }
-            .frame(width: 78, height: 78)
+            .frame(width: 72, height: 72)
 
-            VStack(spacing: 9) {
-                Text("Drag a video here, or click to browse")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.86))
-                Text("Supports MP4, MOV & M4V")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(BiCutTheme.muted)
+            VStack(spacing: 8) {
+                Text(lang.t("Drag a video here, or click to browse", "拖入视频，或点击选择文件"))
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(BiCutTheme.label)
+                Text(lang.t("Supports MP4, MOV & M4V · H.264 / HEVC", "支持 MP4、MOV、M4V · H.264 / HEVC"))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(BiCutTheme.secondaryLabel)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 240)
+        .frame(maxWidth: .infinity, minHeight: 260)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(local.isTargeted ? BiCutTheme.blue.opacity(0.10) : BiCutTheme.panel)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(local.isTargeted ? BiCutTheme.blueSoft : BiCutTheme.panel)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(
-                    local.isTargeted ? BiCutTheme.blue.opacity(0.72) : .clear,
-                    lineWidth: 1.5
+                    local.isTargeted ? BiCutTheme.blue.opacity(0.7) : BiCutTheme.stroke,
+                    style: StrokeStyle(lineWidth: local.isTargeted ? 1.5 : 1, dash: local.isTargeted ? [] : [6, 5])
                 )
         )
-        .scaleEffect(local.isTargeted && !reduceMotion ? 1.008 : 1)
-        .shadow(color: local.isTargeted ? BiCutTheme.blue.opacity(0.12) : .black.opacity(0.10), radius: local.isTargeted ? 20 : 14, y: 6)
+        .scaleEffect(local.isTargeted && !reduceMotion ? 1.006 : 1)
         .animation(
-            reduceMotion ? .linear(duration: 0.12) : .interactiveSpring(response: 0.26, dampingFraction: 1),
+            reduceMotion ? .linear(duration: 0.1) : .interactiveSpring(response: 0.26, dampingFraction: 1),
             value: local.isTargeted
         )
-        .contentShape(RoundedRectangle(cornerRadius: 20))
+        .contentShape(RoundedRectangle(cornerRadius: 16))
         .onTapGesture { local.showFileImporter = true }
         .onDrop(
             of: [.fileURL, .movie, .mpeg4Movie, .quickTimeMovie, .video],
@@ -92,61 +95,56 @@ struct DropZoneView: View {
     @ViewBuilder
     private var recentSection: some View {
         if !model.recentVideos.isEmpty {
-            VStack(spacing: 12) {
+            VStack(spacing: 10) {
                 HStack {
-                    Label("RECENTLY PROCESSED", systemImage: "clock.arrow.circlepath")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.2)
-                        .foregroundStyle(BiCutTheme.muted)
-                        .labelStyle(AmberIconLabelStyle())
+                    Text(lang.t("RECENTLY PROCESSED", "最近处理"))
+                        .font(.system(size: 10, weight: .bold))
+                        .tracking(1.0)
+                        .foregroundStyle(BiCutTheme.tertiaryLabel)
                     Spacer()
-                    Text("Local files")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(BiCutTheme.muted)
                 }
 
-                VStack(spacing: 8) {
-                    ForEach(model.recentVideos) { recent in
-                        recentRow(recent)
+                ForEach(model.recentVideos) { recent in
+                    Button {
+                        Task { await model.openRecentVideo(recent) }
+                    } label: {
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(BiCutTheme.control)
+                                .frame(width: 42, height: 42)
+                                .overlay(
+                                    Image(systemName: "play.rectangle")
+                                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                                )
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(recent.fileName)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(BiCutTheme.label)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                                Text("\(recent.width)×\(recent.height) · \(recent.frameRate) fps")
+                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(BiCutTheme.tertiaryLabel)
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(BiCutTheme.panel)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                        )
                     }
+                    .buttonStyle(ScaleButtonStyle())
                 }
             }
         }
-    }
-
-    private func recentRow(_ recent: RecentVideo) -> some View {
-        Button { Task { await model.openRecentVideo(recent) } } label: {
-            HStack(spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 11)
-                        .fill(BiCutTheme.elevated)
-                    Image(systemName: "play.rectangle")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(BiCutTheme.muted)
-                }
-                .frame(width: 48, height: 48)
-
-                VStack(alignment: .leading, spacing: 7) {
-                    Text(recent.fileName)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white.opacity(0.82))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                    Text("\(recent.width)×\(recent.height)  ·  \(recent.frameRate) fps  ·  \(formattedBytes(recent.fileSize))")
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(BiCutTheme.muted)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.18))
-            }
-            .padding(.horizontal, 15)
-            .frame(maxWidth: .infinity, minHeight: 66)
-            .background(RoundedRectangle(cornerRadius: 15).fill(BiCutTheme.panel))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(ScaleButtonStyle())
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) {
@@ -161,19 +159,6 @@ struct DropZoneView: View {
                 }
                 return
             }
-        }
-    }
-
-    private func formattedBytes(_ bytes: Int64) -> String {
-        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
-    }
-}
-
-private struct AmberIconLabelStyle: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: 9) {
-            configuration.icon.foregroundStyle(BiCutTheme.amber)
-            configuration.title
         }
     }
 }
