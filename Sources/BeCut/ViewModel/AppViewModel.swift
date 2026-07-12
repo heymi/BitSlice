@@ -50,6 +50,10 @@ final class AppViewModel {
     var showMoreExportSettings = false
     var isCustomDurationEntry = false
 
+    // Empty-state drop zone chrome (same reason: no @State macros on CLT builds)
+    var isDropTargeted = false
+    var showFileImporter = false
+
     private var sourceBookmark: Data?
     /// Keeps a security-scoped source URL alive for playback/export while loaded.
     private var scopedSourceURL: URL?

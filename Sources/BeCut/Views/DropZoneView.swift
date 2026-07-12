@@ -1,18 +1,22 @@
+import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-@Observable
-final class DropZoneLocalState {
-    var isTargeted = false
-    var showFileImporter = false
-}
-
 struct DropZoneView: View {
     let model: AppViewModel
-    private let local = DropZoneLocalState()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var lang: AppLanguage { model.appSettings.language }
+
+    private static let dropTypes: [UTType] = [
+        .fileURL,
+        .movie,
+        .mpeg4Movie,
+        .quickTimeMovie,
+        .video,
+        .mpeg,
+        .avi
+    ]
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -28,10 +32,28 @@ struct DropZoneView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(BeCutTheme.canvas)
+        // Entire empty state is a drop target (not only the dashed card).
+        .contentShape(Rectangle())
+        .onDrop(
+            of: Self.dropTypes,
+            isTargeted: Binding(
+                get: { model.isDropTargeted },
+                set: { model.isDropTargeted = $0 }
+            ),
+            perform: handleDrop
+        )
+        // Modern path: Finder → URL. More reliable than loadItem(Data) on recent macOS.
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let url = urls.first else { return false }
+            beginOpenDroppedVideo(url, model: model)
+            return true
+        } isTargeted: { targeted in
+            model.isDropTargeted = targeted
+        }
         .fileImporter(
             isPresented: Binding(
-                get: { local.showFileImporter },
-                set: { local.showFileImporter = $0 }
+                get: { model.showFileImporter },
+                set: { model.showFileImporter = $0 }
             ),
             allowedContentTypes: [.movie, .mpeg4Movie, .quickTimeMovie, .video],
             allowsMultipleSelection: false
@@ -64,32 +86,22 @@ struct DropZoneView: View {
         .frame(maxWidth: .infinity, minHeight: 260)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(local.isTargeted ? BeCutTheme.blueSoft : BeCutTheme.panel)
+                .fill(model.isDropTargeted ? BeCutTheme.blueSoft : BeCutTheme.panel)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(
-                    local.isTargeted ? BeCutTheme.blue.opacity(0.7) : BeCutTheme.stroke,
-                    style: StrokeStyle(lineWidth: local.isTargeted ? 1.5 : 1, dash: local.isTargeted ? [] : [6, 5])
+                    model.isDropTargeted ? BeCutTheme.blue.opacity(0.7) : BeCutTheme.stroke,
+                    style: StrokeStyle(lineWidth: model.isDropTargeted ? 1.5 : 1, dash: model.isDropTargeted ? [] : [6, 5])
                 )
         )
-        .scaleEffect(local.isTargeted && !reduceMotion ? 1.006 : 1)
+        .scaleEffect(model.isDropTargeted && !reduceMotion ? 1.006 : 1)
         .animation(
             reduceMotion ? .linear(duration: 0.1) : .interactiveSpring(response: 0.26, dampingFraction: 1),
-            value: local.isTargeted
+            value: model.isDropTargeted
         )
         .contentShape(RoundedRectangle(cornerRadius: 16))
-        .onTapGesture { local.showFileImporter = true }
-        .onDrop(
-            of: [.fileURL, .movie, .mpeg4Movie, .quickTimeMovie, .video],
-            isTargeted: Binding(
-                get: { local.isTargeted },
-                set: { local.isTargeted = $0 }
-            )
-        ) { providers in
-            handleDrop(providers)
-            return true
-        }
+        .onTapGesture { model.showFileImporter = true }
     }
 
     @ViewBuilder
@@ -147,18 +159,98 @@ struct DropZoneView: View {
         }
     }
 
-    private func handleDrop(_ providers: [NSItemProvider]) {
+    // MARK: - Drop handling
+
+    private func handleDrop(_ providers: [NSItemProvider]) -> Bool {
         for provider in providers {
-            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, error in
-                    guard error == nil,
-                          let data = item as? Data,
-                          let url = URL(dataRepresentation: data, relativeTo: nil)
-                    else { return }
-                    Task { @MainActor in await model.loadVideo(from: url) }
-                }
-                return
+            if resolveProvider(provider) {
+                return true
             }
         }
+        return false
     }
+
+    /// Returns true if we started loading a video from this provider.
+    @discardableResult
+    private func resolveProvider(_ provider: NSItemProvider) -> Bool {
+        let model = model
+
+        // 1) public.file-url — Finder’s primary type for dropped files on macOS.
+        if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                guard let url = dropItemURL(item) else { return }
+                Task { @MainActor in
+                    beginOpenDroppedVideo(url, model: model)
+                }
+            }
+            return true
+        }
+
+        // 2) Movie / video type identifiers via temporary file representation.
+        let mediaTypes = [UTType.movie, .mpeg4Movie, .quickTimeMovie, .video, .mpeg, .avi]
+        for type in mediaTypes {
+            guard provider.hasItemConformingToTypeIdentifier(type.identifier) else { continue }
+            provider.loadFileRepresentation(forTypeIdentifier: type.identifier) { url, _ in
+                guard let url else { return }
+                // File representation is deleted when the callback returns — copy first.
+                let dest = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("BeCut-drop-\(UUID().uuidString)-\(url.lastPathComponent)")
+                do {
+                    if FileManager.default.fileExists(atPath: dest.path) {
+                        try FileManager.default.removeItem(at: dest)
+                    }
+                    try FileManager.default.copyItem(at: url, to: dest)
+                    Task { @MainActor in
+                        beginOpenDroppedVideo(dest, model: model)
+                    }
+                } catch {
+                    // Fall through — try next type / provider.
+                }
+            }
+            return true
+        }
+
+        return false
+    }
+}
+
+@MainActor
+private func beginOpenDroppedVideo(_ url: URL, model: AppViewModel) {
+    model.isDropTargeted = false
+    guard !model.isLoadingVideo else { return }
+    Task { await model.loadVideo(from: url) }
+}
+
+/// macOS Finder may deliver the file URL as URL, NSURL, Data, or a path string.
+/// Free function so NSItemProvider callbacks stay off the main actor.
+private nonisolated func dropItemURL(_ item: (any NSSecureCoding)?) -> URL? {
+    if let url = item as? URL {
+        return url
+    }
+    if let url = item as? NSURL {
+        return url as URL
+    }
+    if let data = item as? Data {
+        if let url = URL(dataRepresentation: data, relativeTo: nil) {
+            return url
+        }
+        if let path = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+           !path.isEmpty {
+            if path.hasPrefix("file:") {
+                return URL(string: path)
+            }
+            return URL(fileURLWithPath: path)
+        }
+    }
+    if let path = item as? String {
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("file:") {
+            return URL(string: trimmed)
+        }
+        if !trimmed.isEmpty {
+            return URL(fileURLWithPath: trimmed)
+        }
+    }
+    return nil
 }
