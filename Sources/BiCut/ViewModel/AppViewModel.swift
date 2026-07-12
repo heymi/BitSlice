@@ -145,10 +145,13 @@ final class AppViewModel {
             relativeTo: nil
         )
 
-        // Set up player
+        // Set up player — always start paused (rate 0). Never autoplay on load.
         let p = AVPlayer(url: url)
         p.volume = isMuted ? 0 : 1
-        p.rate = Float(playbackSpeed)
+        p.pause()
+        p.rate = 0
+        isPlaying = false
+        currentTime = 0
         player = p
         startTimeObserver()
         observePlaybackEnd(for: p)
@@ -216,17 +219,55 @@ final class AppViewModel {
     // MARK: - Player controls
 
     func togglePlayback() {
+        if isPlaying {
+            pausePlayback()
+        } else {
+            playPlayback()
+        }
+    }
+
+    func playPlayback() {
         guard let p = player else { return }
-        if isPlaying { p.pause() } else { p.play(); p.rate = Float(playbackSpeed) }
-        isPlaying.toggle()
+        // If we finished the file, restart from the beginning.
+        if let duration = videoAsset?.durationSeconds,
+           duration > 0,
+           currentTime >= duration - 0.05 {
+            seekTo(seconds: 0)
+        }
+        p.play()
+        p.rate = Float(playbackSpeed)
+        isPlaying = true
+    }
+
+    func pausePlayback() {
+        guard let p = player else { return }
+        p.pause()
+        p.rate = 0
+        isPlaying = false
     }
 
     func seekTo(seconds: Double) {
         guard let p = player, let asset = videoAsset else { return }
         let clamped = max(0, min(seconds, asset.durationSeconds))
         let time = CMTime(seconds: clamped, preferredTimescale: asset.duration.timescale)
-        p.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
-        currentTime = clamped
+        // Keep the user's current play/pause intent after a scrub.
+        let wasPlaying = isPlaying
+        p.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
+            guard finished else { return }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                self.currentTime = clamped
+                if wasPlaying {
+                    self.player?.play()
+                    self.player?.rate = Float(self.playbackSpeed)
+                    self.isPlaying = true
+                } else {
+                    self.player?.pause()
+                    self.player?.rate = 0
+                    self.isPlaying = false
+                }
+            }
+        }
     }
 
     func stepFrame(forward: Bool) {
@@ -278,7 +319,10 @@ final class AppViewModel {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
-                self?.isPlaying = false
+                guard let self else { return }
+                self.player?.pause()
+                self.player?.rate = 0
+                self.isPlaying = false
             }
         }
     }

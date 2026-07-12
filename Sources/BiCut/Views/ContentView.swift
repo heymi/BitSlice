@@ -324,28 +324,43 @@ struct ContentView: View {
                 Spacer()
             }
 
-            // Play
-            if !model.isPlaying {
-                Button { model.togglePlayback() } label: {
-                    Image(systemName: "play.fill")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.white.opacity(0.95))
-                        .offset(x: 1)
-                        .frame(width: 64, height: 64)
-                        .background(Circle().fill(Color.white.opacity(0.14)))
-                        .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
-                }
-                .buttonStyle(ScaleButtonStyle())
+            // Center play / pause
+            Button { model.togglePlayback() } label: {
+                Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.95))
+                    .offset(x: model.isPlaying ? 0 : 1)
+                    .frame(width: 64, height: 64)
+                    .background(Circle().fill(Color.white.opacity(model.isPlaying ? 0.10 : 0.14)))
+                    .overlay(Circle().stroke(Color.white.opacity(0.12), lineWidth: 1))
             }
+            .buttonStyle(ScaleButtonStyle())
+            .opacity(model.isPlaying ? 0.0 : 1.0)
+            .animation(.easeOut(duration: 0.15), value: model.isPlaying)
+            // Keep the control hit-testable while playing via bottom bar; center stays visual when paused.
+            .allowsHitTesting(!model.isPlaying)
 
             // Bottom transport
             VStack {
                 Spacer()
-                HStack {
+                HStack(spacing: 12) {
+                    Button { model.togglePlayback() } label: {
+                        Image(systemName: model.isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .frame(width: 28, height: 28)
+                    }
+                    .buttonStyle(.plain)
+                    .help(model.isPlaying
+                          ? lang.t("Pause", "暂停")
+                          : lang.t("Play", "播放"))
+
                     Text("\(model.currentTimeDetailed) / \(model.durationDetailed)")
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.78))
+
                     Spacer()
+
                     Button { model.toggleMute() } label: {
                         Image(systemName: model.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
                             .font(.system(size: 12, weight: .medium))
