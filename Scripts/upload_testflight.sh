@@ -4,9 +4,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PKG="${1:-$ROOT_DIR/.asc/artifacts/export/BeCut.pkg}"
-APP_ID="${ASC_APP_ID:-}"
+APP_ID="${ASC_APP_ID:-6790153670}"
 VERSION="${VERSION:-1.0.0}"
-BUILD_NUMBER="${BUILD_NUMBER:-1}"
+BUILD_NUMBER="${BUILD_NUMBER:-}"
 
 if [[ ! -f "$PKG" ]]; then
   echo "Missing package: $PKG" >&2
@@ -14,18 +14,9 @@ if [[ ! -f "$PKG" ]]; then
   exit 1
 fi
 
-if [[ -z "$APP_ID" ]]; then
-  # Resolve by bundle id if possible
-  APP_ID=$(asc apps list --bundle-id "app.becut.BeCut" --output json 2>/dev/null \
-    | python3 -c "import sys,json; d=json.load(sys.stdin); data=d.get('data') or []; print(data[0]['id'] if data else '')" 2>/dev/null || true)
-fi
-
-if [[ -z "$APP_ID" ]]; then
-  echo "No App Store Connect app for app.becut.BeCut yet." >&2
-  echo "Create it once:" >&2
-  echo "  asc web apps create --name \"BeCut\" --bundle-id \"app.becut.BeCut\" --sku \"becut-macos\" --platform MAC_OS --primary-locale en-US --apple-id YOUR@EMAIL" >&2
-  echo "Then re-run with: ASC_APP_ID=<id> $0" >&2
-  exit 2
+if [[ -z "$BUILD_NUMBER" ]]; then
+  BUILD_NUMBER=$(asc builds next-build-number --app "$APP_ID" --version "$VERSION" --platform MAC_OS 2>/dev/null \
+    | python3 -c "import sys,json; print(json.load(sys.stdin).get('nextBuildNumber') or '1')" 2>/dev/null || echo "1")
 fi
 
 echo "→ upload $PKG to app $APP_ID (v$VERSION build $BUILD_NUMBER)"
@@ -38,4 +29,7 @@ asc builds upload \
   --wait \
   --pretty
 
-echo "→ done. Open TestFlight in App Store Connect to assign groups."
+echo "→ mark export compliance (no non-exempt encryption)"
+asc builds update --app "$APP_ID" --latest --uses-non-exempt-encryption=false --pretty || true
+
+echo "→ done. Assign testers / beta groups in App Store Connect or via asc testflight."
