@@ -28,7 +28,7 @@ struct RecentVideo: Codable, Identifiable, Equatable {
 }
 
 extension RecentVideo {
-    private static let defaultsKey = "BiCut.RecentVideos"
+    private static let defaultsKey = "BeCut.RecentVideos"
 
     static func loadAll() -> [RecentVideo] {
         guard let data = UserDefaults.standard.data(forKey: defaultsKey),

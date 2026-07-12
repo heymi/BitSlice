@@ -1,6 +1,6 @@
 import CoreMedia
 import Testing
-@testable import BiCut
+@testable import BeCut
 
 @Suite("Export planning")
 struct ExportPlanningTests {
@@ -14,7 +14,8 @@ struct ExportPlanningTests {
 
     @Test func durationPresetsMatchProductPlan() {
         #expect(SegmentDurationPreset.allCases.map(\.seconds) == [15, 30, 60, 120, 180])
-        #expect(SegmentDurationPreset.allCases.map(\.displayName) == ["15 秒", "30 秒", "60 秒", "2 分钟", "3 分钟"])
+        #expect(SegmentDurationPreset.allCases.map { $0.displayName(for: .simplifiedChinese) } == ["15 秒", "30 秒", "60 秒", "2 分钟", "3 分钟"])
+        #expect(SegmentDurationPreset.allCases.map { $0.displayName(for: .english) } == ["15s", "30s", "60s", "2 min", "3 min"])
     }
 
     @Test func outputFormatsIncludeAllLaunchContainers() {
@@ -30,7 +31,7 @@ struct ExportPlanningTests {
             fileExtension: "m4v"
         )
 
-        #expect(segments.map(\.fileName) == ["Interview_part_01.m4v", "Interview_part_02.m4v", "Interview_part_03.m4v"])
+        #expect(segments.map(\.fileName) == ["Interview_01.m4v", "Interview_02.m4v", "Interview_03.m4v"])
         #expect(segments.map(\.durationSeconds) == [60, 60, 5])
         #expect(segments[0].end == segments[1].start)
         #expect(segments[1].end == segments[2].start)

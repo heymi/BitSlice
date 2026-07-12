@@ -24,7 +24,7 @@ struct InspectorSidebarView: View {
             .padding(.top, 18)
             .padding(.bottom, 22)
         }
-        .background(BiCutTheme.canvas)
+        .background(BeCutTheme.canvas)
     }
 
     // MARK: Fast / Precise
@@ -41,7 +41,7 @@ struct InspectorSidebarView: View {
                     } label: {
                         Text(strategy.displayName(for: lang))
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(selected ? BiCutTheme.label : BiCutTheme.secondaryLabel)
+                            .foregroundStyle(selected ? BeCutTheme.label : BeCutTheme.secondaryLabel)
                             .frame(maxWidth: .infinity)
                             .frame(height: 32)
                             .background(
@@ -56,16 +56,16 @@ struct InspectorSidebarView: View {
             .padding(3)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(BiCutTheme.control)
+                    .fill(BeCutTheme.control)
             )
 
             HStack(alignment: .top, spacing: 10) {
                 RoundedRectangle(cornerRadius: 1.5)
-                    .fill(model.config.splittingStrategy == .fast ? BiCutTheme.amber : BiCutTheme.blue)
+                    .fill(model.config.splittingStrategy == .fast ? BeCutTheme.amber : BeCutTheme.blue)
                     .frame(width: 3, height: 40)
                 Text(model.config.splittingStrategy.shortDescription(for: lang))
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 12)
@@ -73,11 +73,11 @@ struct InspectorSidebarView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(BiCutTheme.well)
+                    .fill(BeCutTheme.well)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+                    .stroke(BeCutTheme.stroke, lineWidth: 1)
             )
         }
     }
@@ -91,10 +91,10 @@ struct InspectorSidebarView: View {
                 Spacer()
                 Text(formatShortDuration(model.config.segmentDuration))
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundStyle(BiCutTheme.blue)
+                    .foregroundStyle(BeCutTheme.blue)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(Capsule().fill(BiCutTheme.blueSoft))
+                    .background(Capsule().fill(BeCutTheme.blueSoft))
             }
 
             HStack(spacing: 12) {
@@ -110,7 +110,7 @@ struct InspectorSidebarView: View {
                     ),
                     in: 1 ... max(1, model.videoDuration)
                 )
-                .tint(BiCutTheme.blue)
+                .tint(BeCutTheme.blue)
 
                 stepCircle("plus") {
                     model.setSegmentDuration(min(model.videoDuration, model.config.segmentDuration + 1))
@@ -127,16 +127,16 @@ struct InspectorSidebarView: View {
                     } label: {
                         Text(preset.displayName(for: lang))
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(selected ? BiCutTheme.onAccent : BiCutTheme.secondaryLabel)
+                            .foregroundStyle(selected ? BeCutTheme.onAccent : BeCutTheme.secondaryLabel)
                             .frame(maxWidth: .infinity)
                             .frame(height: 30)
                             .background(
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(selected ? BiCutTheme.blue : BiCutTheme.control)
+                                    .fill(selected ? BeCutTheme.blue : BeCutTheme.control)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(selected ? Color.clear : BiCutTheme.stroke, lineWidth: 1)
+                                    .stroke(selected ? Color.clear : BeCutTheme.stroke, lineWidth: 1)
                             )
                             .contentShape(Rectangle())
                     }
@@ -150,16 +150,16 @@ struct InspectorSidebarView: View {
                 } label: {
                     Text(lang.t("Custom", "自定义"))
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(model.isCustomDurationEntry ? BiCutTheme.onAccent : BiCutTheme.secondaryLabel)
+                        .foregroundStyle(model.isCustomDurationEntry ? BeCutTheme.onAccent : BeCutTheme.secondaryLabel)
                         .frame(maxWidth: .infinity)
                         .frame(height: 30)
                         .background(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(model.isCustomDurationEntry ? BiCutTheme.blue : BiCutTheme.control)
+                                .fill(model.isCustomDurationEntry ? BeCutTheme.blue : BeCutTheme.control)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(model.isCustomDurationEntry ? Color.clear : BiCutTheme.stroke, lineWidth: 1)
+                                .stroke(model.isCustomDurationEntry ? Color.clear : BeCutTheme.stroke, lineWidth: 1)
                         )
                         .contentShape(Rectangle())
                 }
@@ -170,21 +170,21 @@ struct InspectorSidebarView: View {
                 HStack(spacing: 10) {
                     Text(lang.t("Seconds", "秒数"))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .foregroundStyle(BeCutTheme.secondaryLabel)
                     TextField(lang.t("sec", "秒"), value: Binding(
                         get: { model.config.segmentDuration },
                         set: { model.setSegmentDuration(max(1, $0.rounded()), customEntry: true) }
                     ), format: .number.precision(.fractionLength(0)))
                         .textFieldStyle(.plain)
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundStyle(BiCutTheme.label)
+                        .foregroundStyle(BeCutTheme.label)
                         .multilineTextAlignment(.trailing)
                         .padding(.horizontal, 10)
                         .frame(maxWidth: .infinity, minHeight: 34)
                         .background(fieldBackground)
                     Text(lang.t("sec", "秒"))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .foregroundStyle(BeCutTheme.secondaryLabel)
                 }
             }
 
@@ -201,11 +201,11 @@ struct InspectorSidebarView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(BiCutTheme.blueSoft)
+                    .fill(BeCutTheme.blueSoft)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(BiCutTheme.blue.opacity(0.28), lineWidth: 1)
+                    .stroke(BeCutTheme.blue.opacity(0.28), lineWidth: 1)
             )
         }
     }
@@ -226,7 +226,7 @@ struct InspectorSidebarView: View {
             ))
             .textFieldStyle(.plain)
             .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(BiCutTheme.label)
+            .foregroundStyle(BeCutTheme.label)
             .padding(.horizontal, 14)
             .frame(height: 40)
             .background(fieldBackground)
@@ -234,15 +234,15 @@ struct InspectorSidebarView: View {
             HStack(spacing: 10) {
                 Image(systemName: "doc.badge.gearshape")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(BiCutTheme.blue)
+                    .foregroundStyle(BeCutTheme.blue)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(lang.t("FIRST OUTPUT PREVIEW", "首个文件预览"))
                         .font(.system(size: 9, weight: .bold))
                         .tracking(0.7)
-                        .foregroundStyle(BiCutTheme.tertiaryLabel)
+                        .foregroundStyle(BeCutTheme.tertiaryLabel)
                     Text(model.namingPreview)
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .foregroundStyle(BeCutTheme.secondaryLabel)
                         .lineLimit(1)
                         .truncationMode(.middle)
                 }
@@ -251,11 +251,11 @@ struct InspectorSidebarView: View {
             .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(BiCutTheme.well)
+                    .fill(BeCutTheme.well)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+                    .stroke(BeCutTheme.stroke, lineWidth: 1)
             )
         }
     }
@@ -270,11 +270,11 @@ struct InspectorSidebarView: View {
                 HStack(spacing: 8) {
                     Text(lang.t("More Settings", "更多设置"))
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.label)
+                        .foregroundStyle(BeCutTheme.label)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(BiCutTheme.tertiaryLabel)
+                        .foregroundStyle(BeCutTheme.tertiaryLabel)
                         .rotationEffect(.degrees(model.showMoreExportSettings ? 90 : 0))
                 }
                 .padding(.vertical, 4)
@@ -295,7 +295,7 @@ struct InspectorSidebarView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(lang.t("Codec Standard", "输出编码"))
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
 
             HStack(spacing: 3) {
                 ForEach(VideoCodecPreference.allCases) { codec in
@@ -305,7 +305,7 @@ struct InspectorSidebarView: View {
             .padding(3)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(BiCutTheme.control)
+                    .fill(BeCutTheme.control)
             )
             .opacity(model.config.splittingStrategy == .fast ? 0.45 : 1)
             .disabled(model.config.splittingStrategy == .fast)
@@ -313,7 +313,7 @@ struct InspectorSidebarView: View {
             if model.config.splittingStrategy == .fast {
                 Text(lang.t("Kept from source in Fast mode", "快速模式保留源编码"))
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(BiCutTheme.tertiaryLabel)
+                    .foregroundStyle(BeCutTheme.tertiaryLabel)
             }
         }
     }
@@ -325,7 +325,7 @@ struct InspectorSidebarView: View {
         } label: {
             Text(codec.displayName)
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(selected ? BiCutTheme.label : BiCutTheme.secondaryLabel)
+                .foregroundStyle(selected ? BeCutTheme.label : BeCutTheme.secondaryLabel)
                 .frame(maxWidth: .infinity)
                 .frame(height: 30)
                 .background(
@@ -341,7 +341,7 @@ struct InspectorSidebarView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(lang.t("Target Resolution", "目标分辨率"))
                 .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
 
             Picker("", selection: Binding(
                 get: { model.config.resolution },
@@ -362,7 +362,7 @@ struct InspectorSidebarView: View {
             if model.config.splittingStrategy == .fast {
                 Text(lang.t("Original resolution only in Fast mode", "快速模式仅输出原始分辨率"))
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(BiCutTheme.tertiaryLabel)
+                    .foregroundStyle(BeCutTheme.tertiaryLabel)
             }
         }
     }
@@ -375,21 +375,21 @@ struct InspectorSidebarView: View {
 
             HStack(spacing: 10) {
                 Image(systemName: "folder.fill")
-                    .foregroundStyle(BiCutTheme.amber)
+                    .foregroundStyle(BeCutTheme.amber)
                 Text(model.destinationDisplayPath)
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer(minLength: 4)
                 Button { pickFolder() } label: {
                     Text(lang.t("Browse…", "选择…"))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.label)
+                        .foregroundStyle(BeCutTheme.label)
                         .padding(.horizontal, 11)
                         .frame(height: 26)
                         .background(Capsule().fill(Color.white.opacity(0.08)))
-                        .overlay(Capsule().stroke(BiCutTheme.stroke, lineWidth: 1))
+                        .overlay(Capsule().stroke(BeCutTheme.stroke, lineWidth: 1))
                         .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -423,20 +423,20 @@ struct InspectorSidebarView: View {
                 .frame(height: 48)
                 .background(
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(BiCutTheme.blueBright)
+                        .fill(BeCutTheme.blueBright)
                 )
-                .shadow(color: BiCutTheme.blue.opacity(0.35), radius: 14, y: 6)
+                .shadow(color: BeCutTheme.blue.opacity(0.35), radius: 14, y: 6)
                 .contentShape(Rectangle())
             }
             .buttonStyle(ScaleButtonStyle())
-            .foregroundStyle(BiCutTheme.onAccent)
+            .foregroundStyle(BeCutTheme.onAccent)
             .disabled(model.segments.isEmpty || model.phase.isExporting || model.isLoadingVideo)
             .opacity(model.segments.isEmpty || model.phase.isExporting || model.isLoadingVideo ? 0.45 : 1)
             .padding(.top, 22)
 
             Text(exportFooterCopy)
                 .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(BiCutTheme.tertiaryLabel)
+                .foregroundStyle(BeCutTheme.tertiaryLabel)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -461,7 +461,7 @@ struct InspectorSidebarView: View {
 
     private var divider: some View {
         Rectangle()
-            .fill(BiCutTheme.hairline)
+            .fill(BeCutTheme.hairline)
             .frame(height: 1)
             .padding(.vertical, 20)
     }
@@ -473,15 +473,15 @@ struct InspectorSidebarView: View {
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(BiCutTheme.label)
+            .foregroundStyle(BeCutTheme.label)
     }
 
     private var fieldBackground: some View {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(BiCutTheme.control)
+            .fill(BeCutTheme.control)
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+                    .stroke(BeCutTheme.stroke, lineWidth: 1)
             )
     }
 
@@ -489,10 +489,10 @@ struct InspectorSidebarView: View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
                 .frame(width: 30, height: 30)
-                .background(Circle().fill(BiCutTheme.control))
-                .overlay(Circle().stroke(BiCutTheme.stroke, lineWidth: 1))
+                .background(Circle().fill(BeCutTheme.control))
+                .overlay(Circle().stroke(BeCutTheme.stroke, lineWidth: 1))
         }
         .buttonStyle(ScaleButtonStyle())
     }

@@ -74,7 +74,7 @@ enum OutputFormat: String, CaseIterable, Codable {
     }
 }
 
-/// Codecs BiCut can actually target when re-encoding (Precise mode).
+/// Codecs BeCut can actually target when re-encoding (Precise mode).
 enum VideoCodecPreference: String, CaseIterable, Identifiable {
     case h264
     case hevc
@@ -211,7 +211,7 @@ enum ExportResolution: String, CaseIterable, Codable, Equatable {
 // MARK: - Persistence
 
 extension ExportConfig {
-    private static let defaultsKey = "BiCut.ExportConfig"
+    private static let defaultsKey = "BeCut.ExportConfig"
 
     static func load() -> ExportConfig {
         guard let data = UserDefaults.standard.data(forKey: defaultsKey),

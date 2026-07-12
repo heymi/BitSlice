@@ -62,7 +62,7 @@ func calculateSegments(
         let start = boundaries[i]
         let end = boundaries[i + 1]
         let sequence = String(format: "%02d", i + 1)
-        let name = "\(baseName)_part_\(sequence).\(fileExtension)"
+        let name = "\(baseName)_\(sequence).\(fileExtension)"
         return SegmentInfo(index: i, start: start, end: end, fileName: name)
     }
 }

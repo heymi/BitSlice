@@ -2,20 +2,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "BiCut",
+    name: "BeCut",
     platforms: [.macOS(.v14)],
     products: [
-        .executable(name: "BiCut", targets: ["BiCut"])
+        .executable(name: "BeCut", targets: ["BeCut"])
     ],
     targets: [
         .executableTarget(
-            name: "BiCut",
-            path: "Sources/BiCut"
+            name: "BeCut",
+            path: "Sources/BeCut"
         ),
         .testTarget(
-            name: "BiCutTests",
-            dependencies: ["BiCut"],
-            path: "Tests/BiCutTests",
+            name: "BeCutTests",
+            dependencies: ["BeCut"],
+            path: "Tests/BeCutTests",
             exclude: ["LONG_MEDIA_GATE.md"]
         )
     ]

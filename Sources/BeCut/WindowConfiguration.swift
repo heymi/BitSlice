@@ -39,7 +39,7 @@ final class SettingsWindowCoordinator {
         }
         window.contentView = NSHostingView(rootView: settingsView)
         window.center()
-        window.setFrameAutosaveName("BiCutSettingsWindow")
+        window.setFrameAutosaveName("BeCutSettingsWindow")
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 700, height: 480)
 
@@ -81,7 +81,7 @@ final class ApplicationMenuCoordinator: NSObject {
     private func rebuildMenu(on application: NSApplication, language: AppLanguage) {
         let mainMenu = NSMenu()
         let applicationItem = NSMenuItem()
-        let applicationMenu = NSMenu(title: "BiCut")
+        let applicationMenu = NSMenu(title: "BeCut")
 
         let settingsItem = NSMenuItem(
             title: language.t("Settings…", "设置…"),
@@ -93,7 +93,7 @@ final class ApplicationMenuCoordinator: NSObject {
         applicationMenu.addItem(settingsItem)
         applicationMenu.addItem(.separator())
         applicationMenu.addItem(
-            withTitle: language.t("Quit BiCut", "退出 BiCut"),
+            withTitle: language.t("Quit BeCut", "退出 BeCut"),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         ).target = application

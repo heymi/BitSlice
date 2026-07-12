@@ -88,7 +88,7 @@ struct AppSettings: Codable, Equatable {
     /// Export multiple Fast-mode slices concurrently (capped). Precise stays sequential.
     var parallelFastExports: Bool = true
 
-    private static let defaultsKey = "BiCut.AppSettings"
+    private static let defaultsKey = "BeCut.AppSettings"
 
     static func load() -> AppSettings {
         guard let data = UserDefaults.standard.data(forKey: defaultsKey),
@@ -111,11 +111,11 @@ struct AppSettings: Codable, Equatable {
     }
 }
 
-enum BiCutAppMetadata {
+enum BeCutAppMetadata {
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
     static let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
     static let websiteURL = URL(string: "https://github.com/heymi/BitSlice")!
-    static let supportEmail = "support@bicut.app"
+    static let supportEmail = "support@becut.app"
     static let supportURL = URL(string: "mailto:\(supportEmail)")!
 
     static var versionLabel: String {

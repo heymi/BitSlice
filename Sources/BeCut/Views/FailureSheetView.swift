@@ -12,17 +12,17 @@ struct FailureSheetView: View {
 
     var body: some View {
         ZStack {
-            BiCutTheme.scrim
+            BeCutTheme.scrim
                 .ignoresSafeArea()
                 .onTapGesture {}
 
             VStack(spacing: 0) {
                 ZStack {
                     Circle()
-                        .fill(BiCutTheme.danger.opacity(0.12))
+                        .fill(BeCutTheme.danger.opacity(0.12))
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(BiCutTheme.danger)
+                        .foregroundStyle(BeCutTheme.danger)
                 }
                 .frame(width: 72, height: 72)
                 .padding(.bottom, 18)
@@ -30,10 +30,10 @@ struct FailureSheetView: View {
                 VStack(spacing: 9) {
                     Text(isChinese ? "出了点问题" : "Something went wrong")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(BiCutTheme.label)
+                        .foregroundStyle(BeCutTheme.label)
                     Text(message)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .foregroundStyle(BeCutTheme.secondaryLabel)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -45,20 +45,20 @@ struct FailureSheetView: View {
                         .font(.system(size: 13, weight: .bold))
                         .frame(maxWidth: .infinity, minHeight: 40)
                         .background(
-                            RoundedRectangle(cornerRadius: BiCutTheme.controlRadius, style: .continuous)
-                                .fill(BiCutTheme.blue)
+                            RoundedRectangle(cornerRadius: BeCutTheme.controlRadius, style: .continuous)
+                                .fill(BeCutTheme.blue)
                         )
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(ScaleButtonStyle())
-                .foregroundStyle(BiCutTheme.onAccent)
+                .foregroundStyle(BeCutTheme.onAccent)
                 .padding(.top, 26)
                 .keyboardShortcut(.defaultAction)
             }
             .padding(.horizontal, 34)
             .padding(.vertical, 32)
             .frame(width: 420)
-            .bicutModalChrome()
+            .becutModalChrome()
             .transition(reduceMotion ? .opacity : .scale(scale: 0.96).combined(with: .opacity))
         }
         .accessibilityElement(children: .contain)

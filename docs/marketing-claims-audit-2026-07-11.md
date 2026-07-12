@@ -1,4 +1,4 @@
-# BiCut 技术宣传文案核验
+# BeCut 技术宣传文案核验
 
 日期：2026-07-11。审计对象是当前工作区代码，不是假设中的后续版本。结论分四类：**已做到**、**可做但需重构**、**可用但必须降调**、**不能写**。
 
@@ -9,7 +9,7 @@
 - 直通分流不重编码，片段必须从可解码的同步帧开始，通常会将目标切点向前移到上一个关键帧；它快且无编码损失，但不保证设定为 60 秒就从 60.000 秒开始。
 - 帧级精确分片必须在非关键帧边界重编码（或采用更复杂的 smart-render 边缘重编码）；它能遵守时长，但不是零编码、也不能宣称字节级原样。
 
-按产品已确认方向，BiCut 应优先默认精确模式；无损直通模式如以后加入，必须是明确标注“可能偏移切点”的可选模式。
+按产品已确认方向，BeCut 应优先默认精确模式；无损直通模式如以后加入，必须是明确标注“可能偏移切点”的可选模式。
 
 ## 逐项核验
 
@@ -22,7 +22,7 @@
 | “Swift + AVFoundation 原生 Apple 芯片架构” | **已做到，但需降调** | 项目是 Swift Package，平台设为 macOS 14，代码使用 AVFoundation。 | “使用 Swift 和 AVFoundation 构建的 macOS 原生应用。”仅在正式 ARM64 分发包验证后才写“Apple Silicon 原生”。 |
 | “100% 榨干全部晶体管、发热卡顿一去不返” | **不能写** | 没有性能基准、热状态控制、硬件编码能力检测或性能承诺依据。 | 删除。可以用实测数据表达，例如“在 M 系列 Mac 上针对某样本的导出耗时”。 |
 | “Metal & VideoToolbox 硬件加速已全面开启” | **不能写** | 当前虽使用 VideoToolbox 的编码配置常量，但没有 `VTCompressionSession`、硬件能力查询或编码器选择代码。AVFoundation 可能在系统内部使用硬件资源，但应用未控制或验证。 | 现阶段写“使用 Apple AVFoundation 媒体框架”。实施并验证后才写“支持硬件加速编码”。 |
-| “相比虚拟机提升数倍性能” | **不能写** | 没有虚拟机对照、固定样本、设备或指标。并且 BiCut 的主要对手是原生桌面视频工具，不是虚拟机。 | 删除。这是无关且不可复现实验的对比。 |
+| “相比虚拟机提升数倍性能” | **不能写** | 没有虚拟机对照、固定样本、设备或指标。并且 BeCut 的主要对手是原生桌面视频工具，不是虚拟机。 | 删除。这是无关且不可复现实验的对比。 |
 | “MP4、MOV ProRes、MKV、AVI 均无损重封装” | **不能写；部分可做** | 输入选择器请求 `.movie` 等通用类型，但兼容性检测只接受 MP4/MOV/M4V 与 H.264/HEVC；没有 MKV/AVI 输出或 remux 实现。 | 首发只宣称实测成功的 MP4/MOV/M4V（精确重编码）。ProRes、MKV、AVI 需逐容器/编码/音轨测试；广泛支持通常需独立 FFmpeg 后端。 |
 | “MP4 H.264 / MOV ProRes / MKV Stream / HEVC H.265” | **可用但必须降调** | 代码识别 H.264/HEVC，支持 MP4/MOV/M4V 输出；无法写入源编码时回退 H.264；没有 ProRes 选择和 MKV 输出。输入能否成功取决于系统解码能力。 | 改为“首发针对 H.264/HEVC 的 MP4/MOV/M4V 精确分片”；没有验证前不列 ProRes/MKV。 |
 | “全部短视频、手机、单反 GOP 通常 0.5–2 秒” | **不能写成普适事实** | GOP 长度是编码器、码率控制、分辨率、内容、相机与平台设置共同决定的结果，不能以来源类型保证。 | 可在导入后分析当前文件并显示“此视频关键帧间隔约为 X–Y 秒”；不做全行业范围承诺。 |
@@ -33,7 +33,7 @@
 ## 当前已经可以使用的可信文案
 
 > **固定时长，一键分片**
-> 导入一个视频，选择 15 秒、30 秒、60 秒、2 分钟、3 分钟或自定义时长，BiCut 会自动生成连续片段并导出到指定文件夹。
+> 导入一个视频，选择 15 秒、30 秒、60 秒、2 分钟、3 分钟或自定义时长，BeCut 会自动生成连续片段并导出到指定文件夹。
 >
 > **本地处理，清楚交付**
 > 使用 Swift 与 AVFoundation 构建的 macOS 原生应用。可预览分片计划、设置文件名、输出 MP4 或 MOV，并按需选择原始尺寸或更低分辨率。
@@ -56,9 +56,9 @@
 
 ## 主要证据
 
-- 当前精确重编码路径：[VideoProcessor.swift](../Sources/BiCut/Services/VideoProcessor.swift)。
-- 当前输出为 MP4/MOV/M4V：[ExportConfig.swift](../Sources/BiCut/Models/ExportConfig.swift)。
-- 当前导入类型请求：[DropZoneView.swift](../Sources/BiCut/Views/DropZoneView.swift)。
+- 当前精确重编码路径：[VideoProcessor.swift](../Sources/BeCut/Services/VideoProcessor.swift)。
+- 当前输出为 MP4/MOV/M4V：[ExportConfig.swift](../Sources/BeCut/Models/ExportConfig.swift)。
+- 当前导入类型请求：[DropZoneView.swift](../Sources/BeCut/Views/DropZoneView.swift)。
 - Apple 说明 [`AVAssetWriterInput.outputSettings`](https://developer.apple.com/documentation/avfoundation/avassetwriterinput/outputsettings) 为 `nil` 才是样本直通；非空输出设置会进行编码。当前精确重编码路径配置了视频输出设置。
 - Apple 的 [VideoToolbox 文档](https://developer.apple.com/documentation/videotoolbox) 说明它是硬件编解码的低层接口；当前工程未直接使用它。
 - Apple 说明输出容器与编码设置必须兼容，应使用 [`canApply(outputSettings:forMediaType:)`](https://developer.apple.com/documentation/avfoundation/avassetwriter/canapply%28outputsettings%3Aformediatype%3A%29) 验证，而非承诺任意封装都可 remux。

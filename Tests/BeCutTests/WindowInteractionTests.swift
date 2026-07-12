@@ -1,6 +1,6 @@
 import AppKit
 import Testing
-@testable import BiCut
+@testable import BeCut
 
 @Suite("Window interaction")
 struct WindowInteractionTests {

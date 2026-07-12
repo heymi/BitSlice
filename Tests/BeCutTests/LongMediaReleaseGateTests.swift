@@ -2,18 +2,18 @@ import AVFoundation
 import Darwin
 import Foundation
 import Testing
-@testable import BiCut
+@testable import BeCut
 
 @Suite("Long media release gate")
 struct LongMediaReleaseGateTests {
     @Test(.enabled(
-        if: ProcessInfo.processInfo.environment["BICUT_BENCHMARK_VIDEO"] != nil,
-        "Set BICUT_BENCHMARK_VIDEO to a representative 10-minute or 1-hour source."
+        if: ProcessInfo.processInfo.environment["BECUT_BENCHMARK_VIDEO"] != nil,
+        "Set BECUT_BENCHMARK_VIDEO to a representative 10-minute or 1-hour source."
     ))
     func benchmarkRepresentativeLongVideo() async throws {
         let environment = ProcessInfo.processInfo.environment
-        let sourcePath = try #require(environment["BICUT_BENCHMARK_VIDEO"])
-        let benchmarkClass = try #require(environment["BICUT_BENCHMARK_CLASS"])
+        let sourcePath = try #require(environment["BECUT_BENCHMARK_VIDEO"])
+        let benchmarkClass = try #require(environment["BECUT_BENCHMARK_CLASS"])
         let sourceURL = URL(fileURLWithPath: sourcePath)
         let sourceAsset = AVURLAsset(url: sourceURL)
         let sourceDuration = try await sourceAsset.load(.duration)
@@ -24,7 +24,7 @@ struct LongMediaReleaseGateTests {
         case "1h":
             #expect((3_300 ... 3_900).contains(sourceDurationSeconds), "The 1h gate requires a 55–65 minute input.")
         default:
-            Issue.record("BICUT_BENCHMARK_CLASS must be 10m or 1h.")
+            Issue.record("BECUT_BENCHMARK_CLASS must be 10m or 1h.")
             return
         }
 
@@ -47,7 +47,7 @@ struct LongMediaReleaseGateTests {
             plannedSegments: plannedSegments
         )
         let outputDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("BiCutLongMediaGate-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("BeCutLongMediaGate-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: outputDirectory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: outputDirectory) }
 
@@ -107,7 +107,7 @@ struct LongMediaReleaseGateTests {
         ]
         let reportData = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
         print(String(decoding: reportData, as: UTF8.self))
-        if let reportPath = environment["BICUT_BENCHMARK_REPORT"] {
+        if let reportPath = environment["BECUT_BENCHMARK_REPORT"] {
             try reportData.write(to: URL(fileURLWithPath: reportPath), options: .atomic)
         }
     }

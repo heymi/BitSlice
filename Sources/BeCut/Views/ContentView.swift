@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Design tokens (adaptive; dark matches mockup)
 
-enum BiCutTheme {
+enum BeCutTheme {
     static let canvas = adaptive(
         dark: NSColor(red: 0.071, green: 0.071, blue: 0.078, alpha: 1),
         light: NSColor(red: 0.93, green: 0.93, blue: 0.945, alpha: 1)
@@ -91,26 +91,26 @@ enum BiCutTheme {
 }
 
 extension View {
-    func bicutCard(radius: CGFloat = BiCutTheme.largeRadius) -> some View {
+    func becutCard(radius: CGFloat = BeCutTheme.largeRadius) -> some View {
         background(
             RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .fill(BiCutTheme.panel)
+                .fill(BeCutTheme.panel)
         )
         .overlay(
             RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
     }
 
-    func bicutModalChrome(radius: CGFloat = 22) -> some View {
+    func becutModalChrome(radius: CGFloat = 22) -> some View {
         background(
             RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .fill(BiCutTheme.panel)
-                .shadow(color: BiCutTheme.cardShadow, radius: 28, y: 14)
+                .fill(BeCutTheme.panel)
+                .shadow(color: BeCutTheme.cardShadow, radius: 28, y: 14)
         )
         .overlay(
             RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
     }
 }
@@ -125,7 +125,7 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            BiCutTheme.canvas.ignoresSafeArea()
+            BeCutTheme.canvas.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 appHeader
@@ -147,7 +147,7 @@ struct ContentView: View {
             }
         }
         .preferredColorScheme(preferredColorScheme)
-        .tint(BiCutTheme.blue)
+        .tint(BeCutTheme.blue)
         .environment(\.locale, Locale(identifier: lang.localeIdentifier))
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.isLoadingVideo)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: model.appSettings.appearance)
@@ -162,29 +162,29 @@ struct ContentView: View {
         }
     }
 
-    // MARK: Header (BiCut + core badge + theme/help)
+    // MARK: Header (BeCut + core badge + theme/help)
 
     private var appHeader: some View {
         HStack(spacing: 12) {
             Spacer(minLength: 68) // traffic-light clearance
 
             HStack(spacing: 10) {
-                Text("BiCut")
+                Text("BeCut")
                     .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
 
                 HStack(spacing: 7) {
                     Circle()
-                        .fill(BiCutTheme.success)
+                        .fill(BeCutTheme.success)
                         .frame(width: 6, height: 6)
-                    Text("Slicer Core \(BiCutAppMetadata.versionLabel)")
+                    Text("Slicer Core \(BeCutAppMetadata.versionLabel)")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .foregroundStyle(BeCutTheme.secondaryLabel)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
-                .background(Capsule().fill(BiCutTheme.elevated))
-                .overlay(Capsule().stroke(BiCutTheme.stroke, lineWidth: 1))
+                .background(Capsule().fill(BeCutTheme.elevated))
+                .overlay(Capsule().stroke(BeCutTheme.stroke, lineWidth: 1))
             }
 
             Spacer()
@@ -203,15 +203,15 @@ struct ContentView: View {
                     model.cycleAppearance()
                 }
                 headerIconButton(systemName: "questionmark.circle", help: lang.t("Support", "支持")) {
-                    NSWorkspace.shared.open(BiCutAppMetadata.supportURL)
+                    NSWorkspace.shared.open(BeCutAppMetadata.supportURL)
                 }
             }
         }
         .padding(.trailing, 16)
         .frame(height: 52)
-        .background(BiCutTheme.canvas)
+        .background(BeCutTheme.canvas)
         .overlay(alignment: .bottom) {
-            Rectangle().fill(BiCutTheme.hairline).frame(height: 1)
+            Rectangle().fill(BeCutTheme.hairline).frame(height: 1)
         }
     }
 
@@ -219,7 +219,7 @@ struct ContentView: View {
         Button(action: action) {
             Image(systemName: systemName)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
                 .frame(width: 30, height: 30)
                 .contentShape(Rectangle())
         }
@@ -241,10 +241,10 @@ struct ContentView: View {
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            Rectangle().fill(BiCutTheme.hairline).frame(width: 1)
+            Rectangle().fill(BeCutTheme.hairline).frame(width: 1)
 
             InspectorSidebarView(model: model)
-                .frame(width: BiCutTheme.sidebarWidth)
+                .frame(width: BeCutTheme.sidebarWidth)
         }
     }
 
@@ -254,22 +254,22 @@ struct ContentView: View {
         HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(BiCutTheme.blueSoft)
+                    .fill(BeCutTheme.blueSoft)
                 Image(systemName: "film")
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(BiCutTheme.blue)
+                    .foregroundStyle(BeCutTheme.blue)
             }
             .frame(width: 44, height: 44)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(model.videoAsset?.fileName ?? "")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Text(sourceMetadataLine)
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
                     .lineLimit(1)
             }
 
@@ -280,17 +280,17 @@ struct ContentView: View {
                     .font(.system(size: 12, weight: .semibold))
                     .padding(.horizontal, 14)
                     .frame(height: 34)
-                    .background(Capsule().fill(BiCutTheme.control))
-                    .overlay(Capsule().stroke(BiCutTheme.stroke, lineWidth: 1))
+                    .background(Capsule().fill(BeCutTheme.control))
+                    .overlay(Capsule().stroke(BeCutTheme.stroke, lineWidth: 1))
                     .contentShape(Capsule())
             }
             .buttonStyle(ScaleButtonStyle())
-            .foregroundStyle(BiCutTheme.label)
+            .foregroundStyle(BeCutTheme.label)
             .help(lang.t("Choose a different source video", "选择其他源视频"))
         }
         .padding(.horizontal, 14)
         .frame(height: 68)
-        .bicutCard(radius: 14)
+        .becutCard(radius: 14)
     }
 
     private var sourceMetadataLine: String {
@@ -379,7 +379,7 @@ struct ContentView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
         .contentShape(Rectangle())
         .onTapGesture { model.togglePlayback() }
@@ -415,15 +415,15 @@ struct ContentView: View {
                 } icon: {
                     Image(systemName: "scissors")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.blue)
+                        .foregroundStyle(BeCutTheme.blue)
                 }
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
 
                 Spacer()
 
                 Text(lang.t("Click slices to preview cut start-points", "点击切片预览起点"))
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(BiCutTheme.tertiaryLabel)
+                    .foregroundStyle(BeCutTheme.tertiaryLabel)
             }
 
             HStack(spacing: 8) {
@@ -440,13 +440,13 @@ struct ContentView: View {
                         .fill(Color.white.opacity(0.08))
                         .frame(height: 3)
                     Capsule()
-                        .fill(BiCutTheme.blue)
+                        .fill(BeCutTheme.blue)
                         .frame(width: max(0, x), height: 3)
                     Circle()
-                        .fill(BiCutTheme.blue)
+                        .fill(BeCutTheme.blue)
                         .frame(width: 12, height: 12)
                         .overlay(Circle().stroke(Color.white.opacity(0.9), lineWidth: 1.5))
-                        .shadow(color: BiCutTheme.blue.opacity(0.45), radius: 5)
+                        .shadow(color: BeCutTheme.blue.opacity(0.45), radius: 5)
                         .offset(x: min(max(0, x - 6), geometry.size.width - 12))
                 }
                 .frame(maxHeight: .infinity)
@@ -466,14 +466,14 @@ struct ContentView: View {
                 Text(formatTimestamp(model.videoDuration))
             }
             .font(.system(size: 10, weight: .medium, design: .monospaced))
-            .foregroundStyle(BiCutTheme.tertiaryLabel)
+            .foregroundStyle(BeCutTheme.tertiaryLabel)
         }
         .padding(16)
-        .bicutCard(radius: 14)
+        .becutCard(radius: 14)
     }
 
     private func sliceChip(index: Int, segment: SegmentInfo) -> some View {
-        let color = BiCutTheme.sliceColors[index % BiCutTheme.sliceColors.count]
+        let color = BeCutTheme.sliceColors[index % BeCutTheme.sliceColors.count]
         let active = model.activeSegmentIndex == index
         return Button {
             model.seekTo(seconds: segment.startSeconds)
@@ -519,12 +519,12 @@ struct ContentView: View {
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
         }
         .font(.system(size: 11, weight: .medium))
-        .foregroundStyle(BiCutTheme.tertiaryLabel)
+        .foregroundStyle(BeCutTheme.tertiaryLabel)
         .padding(.horizontal, 18)
         .frame(height: 36)
-        .background(BiCutTheme.canvas)
+        .background(BeCutTheme.canvas)
         .overlay(alignment: .top) {
-            Rectangle().fill(BiCutTheme.hairline).frame(height: 1)
+            Rectangle().fill(BeCutTheme.hairline).frame(height: 1)
         }
     }
 
@@ -532,18 +532,18 @@ struct ContentView: View {
 
     private var loadingOverlay: some View {
         ZStack {
-            BiCutTheme.scrim.ignoresSafeArea()
+            BeCutTheme.scrim.ignoresSafeArea()
             VStack(spacing: 14) {
                 ProgressView()
                     .controlSize(.large)
-                    .tint(BiCutTheme.blue)
+                    .tint(BeCutTheme.blue)
                 Text(lang.t("Reading video…", "正在读取视频…"))
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
             }
             .padding(.horizontal, 28)
             .padding(.vertical, 24)
-            .bicutModalChrome(radius: 18)
+            .becutModalChrome(radius: 18)
         }
     }
 }

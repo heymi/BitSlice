@@ -7,13 +7,13 @@ synthetic fixture.
 
 ```bash
 DEVELOPER_DIR=/Applications/Xcode-26.6-RC.app/Contents/Developer \
-BICUT_BENCHMARK_VIDEO=/absolute/path/to/input.mp4 \
-BICUT_BENCHMARK_CLASS=10m \
-BICUT_BENCHMARK_REPORT=/absolute/path/to/report-10m.json \
+BECUT_BENCHMARK_VIDEO=/absolute/path/to/input.mp4 \
+BECUT_BENCHMARK_CLASS=10m \
+BECUT_BENCHMARK_REPORT=/absolute/path/to/report-10m.json \
 xcrun swift test --filter benchmarkRepresentativeLongVideo
 ```
 
-Use `BICUT_BENCHMARK_CLASS=1h` for the second run. The gate accepts 9–12
+Use `BECUT_BENCHMARK_CLASS=1h` for the second run. The gate accepts 9–12
 minutes for `10m` and 55–65 minutes for `1h`, preventing one file from being
 reported as both required classes.
 

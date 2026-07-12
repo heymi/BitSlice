@@ -155,7 +155,7 @@ final class VideoProcessor: @unchecked Sendable {
             throw ExportError.noVideoTrack
         }
         let temporaryURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("BiCut-preflight-\(UUID().uuidString).\(config.outputFormat.fileExtension)")
+            .appendingPathComponent("BeCut-preflight-\(UUID().uuidString).\(config.outputFormat.fileExtension)")
         defer { try? FileManager.default.removeItem(at: temporaryURL) }
         let writer = try AVAssetWriter(url: temporaryURL, fileType: config.outputFormat.avFileType)
 

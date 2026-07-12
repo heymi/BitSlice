@@ -1,5 +1,5 @@
 import Testing
-@testable import BiCut
+@testable import BeCut
 
 @Suite("App settings")
 struct AppSettingsTests {
@@ -24,9 +24,9 @@ struct AppSettingsTests {
     }
 
     @Test func metadataIncludesVersionAndSupportLinks() {
-        #expect(!BiCutAppMetadata.versionLabel.isEmpty)
-        #expect(!BiCutAppMetadata.versionLabel.contains("(version)"))
-        #expect(BiCutAppMetadata.websiteURL.absoluteString.hasPrefix("https://"))
-        #expect(BiCutAppMetadata.supportURL.scheme == "mailto")
+        #expect(!BeCutAppMetadata.versionLabel.isEmpty)
+        #expect(!BeCutAppMetadata.versionLabel.contains("(version)"))
+        #expect(BeCutAppMetadata.websiteURL.absoluteString.hasPrefix("https://"))
+        #expect(BeCutAppMetadata.supportURL.scheme == "mailto")
     }
 }

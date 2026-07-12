@@ -19,7 +19,7 @@ let window = NSWindow(
     backing: .buffered,
     defer: false
 )
-window.title = "BiCut"
+window.title = "BeCut"
 window.titleVisibility = .hidden
 window.titlebarAppearsTransparent = true
 configureWindowDragging(window)
@@ -31,7 +31,7 @@ window.backgroundColor = NSColor(name: nil) { appearance in
 window.minSize = NSSize(width: 1100, height: 720)
 window.contentView = NSHostingView(rootView: ContentView(model: model))
 window.center()
-window.setFrameAutosaveName("BiCutMainWindow")
+window.setFrameAutosaveName("BeCutMainWindow")
 window.makeKeyAndOrderFront(nil)
 app.activate()
 

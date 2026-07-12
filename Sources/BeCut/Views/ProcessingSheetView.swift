@@ -28,13 +28,13 @@ struct ProcessingSheetView: View {
                 : "Stream-copying when possible. Cuts may snap slightly earlier to a keyframe."
         }
         return isChinese
-            ? "正在按帧对齐并重新编码，请保持 BiCut 开启。"
-            : "Aligning cuts to source frames and re-encoding. Keep BiCut open."
+            ? "正在按帧对齐并重新编码，请保持 BeCut 开启。"
+            : "Aligning cuts to source frames and re-encoding. Keep BeCut open."
     }
 
     var body: some View {
         ZStack {
-            BiCutTheme.scrim
+            BeCutTheme.scrim
                 .ignoresSafeArea()
                 .onTapGesture {}
 
@@ -43,10 +43,10 @@ struct ProcessingSheetView: View {
                     VStack(spacing: 6) {
                         Text(exportTitle)
                             .font(.system(size: 19, weight: .bold))
-                            .foregroundStyle(BiCutTheme.label)
+                            .foregroundStyle(BeCutTheme.label)
                         Text(exportSubtitle)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(BiCutTheme.secondaryLabel)
+                            .foregroundStyle(BeCutTheme.secondaryLabel)
                             .multilineTextAlignment(.center)
                     }
 
@@ -59,11 +59,11 @@ struct ProcessingSheetView: View {
                     } label: {
                         Text(isChinese ? "取消导出" : "Cancel export")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(BiCutTheme.danger)
+                            .foregroundStyle(BeCutTheme.danger)
                             .padding(.horizontal, 14)
                             .frame(height: 32)
-                            .background(Capsule().fill(BiCutTheme.danger.opacity(0.10)))
-                            .overlay(Capsule().stroke(BiCutTheme.danger.opacity(0.22), lineWidth: 1))
+                            .background(Capsule().fill(BeCutTheme.danger.opacity(0.10)))
+                            .overlay(Capsule().stroke(BeCutTheme.danger.opacity(0.22), lineWidth: 1))
                             .contentShape(Capsule())
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -71,7 +71,7 @@ struct ProcessingSheetView: View {
             }
             .frame(width: 460)
             .padding(32)
-            .bicutModalChrome()
+            .becutModalChrome()
         }
     }
 
@@ -80,14 +80,14 @@ struct ProcessingSheetView: View {
     private func progressCircle(current: Int, total: Int, overall: Double) -> some View {
         ZStack {
             Circle()
-                .stroke(BiCutTheme.control, lineWidth: 6)
+                .stroke(BeCutTheme.control, lineWidth: 6)
                 .frame(width: 100, height: 100)
 
             Circle()
                 .trim(from: 0, to: CGFloat(overall))
                 .stroke(
                     AngularGradient(
-                        gradient: Gradient(colors: [BiCutTheme.blue, .indigo, .purple]),
+                        gradient: Gradient(colors: [BeCutTheme.blue, .indigo, .purple]),
                         center: .center
                     ),
                     style: StrokeStyle(lineWidth: 6, lineCap: .round)
@@ -103,10 +103,10 @@ struct ProcessingSheetView: View {
                 Text("\(Int(overall * 100))")
                     .font(.title.monospacedDigit())
                     .fontWeight(.bold)
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
                 Text("%")
                     .font(.caption)
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
             }
         }
     }
@@ -124,11 +124,11 @@ struct ProcessingSheetView: View {
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(BiCutTheme.well)
+                .fill(BeCutTheme.well)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
     }
 
@@ -143,7 +143,7 @@ struct ProcessingSheetView: View {
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundStyle(
                                 line.contains("✅")
-                                    ? BiCutTheme.success
+                                    ? BeCutTheme.success
                                     : Color(red: 0.25, green: 0.72, blue: 0.42)
                             )
                             .id(line)
@@ -169,7 +169,7 @@ struct ProcessingSheetView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
     }
 }
@@ -185,10 +185,10 @@ struct TelemetryItem: View {
             Text(value)
                 .font(.caption.monospacedDigit())
                 .fontWeight(.semibold)
-                .foregroundStyle(BiCutTheme.label)
+                .foregroundStyle(BeCutTheme.label)
             Text(label)
                 .font(.system(size: 9))
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
         }
     }
 }

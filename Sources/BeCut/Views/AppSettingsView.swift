@@ -16,11 +16,11 @@ struct AppSettingsView: View {
     var body: some View {
         HStack(spacing: 0) {
             sidebar
-            Rectangle().fill(BiCutTheme.hairline).frame(width: 1)
+            Rectangle().fill(BeCutTheme.hairline).frame(width: 1)
             detail
         }
         .frame(width: 760, height: 520)
-        .background(BiCutTheme.canvas)
+        .background(BeCutTheme.canvas)
         .preferredColorScheme(preferredColorScheme)
         .environment(\.locale, Locale(identifier: model.appSettings.language.localeIdentifier))
     }
@@ -32,7 +32,7 @@ struct AppSettingsView: View {
             Text(isChinese ? "偏好设置" : "PREFERENCES")
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1.2)
-                .foregroundStyle(BiCutTheme.tertiaryLabel)
+                .foregroundStyle(BeCutTheme.tertiaryLabel)
                 .padding(.horizontal, 18)
                 .padding(.top, 20)
                 .padding(.bottom, 14)
@@ -51,16 +51,16 @@ struct AppSettingsView: View {
             } label: {
                 Label(isChinese ? "恢复默认" : "Reset Defaults", systemImage: "arrow.counterclockwise")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 14)
                     .frame(height: 38)
                     .background(
                         Capsule()
-                            .fill(BiCutTheme.control.opacity(0.55))
+                            .fill(BeCutTheme.control.opacity(0.55))
                     )
                     .overlay(
-                        Capsule().stroke(BiCutTheme.stroke, lineWidth: 1)
+                        Capsule().stroke(BeCutTheme.stroke, lineWidth: 1)
                     )
                     .contentShape(Capsule())
             }
@@ -69,7 +69,7 @@ struct AppSettingsView: View {
             .padding(.bottom, 18)
         }
         .frame(width: 200)
-        .background(BiCutTheme.panel.opacity(0.55))
+        .background(BeCutTheme.panel.opacity(0.55))
     }
 
     private func sidebarButton(_ item: SettingsPane) -> some View {
@@ -79,13 +79,13 @@ struct AppSettingsView: View {
         } label: {
             Label(item.title(isChinese: isChinese), systemImage: item.systemImage)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(selected ? BiCutTheme.onAccent : BiCutTheme.secondaryLabel)
+                .foregroundStyle(selected ? BeCutTheme.onAccent : BeCutTheme.secondaryLabel)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .frame(height: 36)
                 .background(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(selected ? BiCutTheme.blueBright : Color.clear)
+                        .fill(selected ? BeCutTheme.blueBright : Color.clear)
                 )
                 .contentShape(Rectangle())
         }
@@ -99,7 +99,7 @@ struct AppSettingsView: View {
             HStack {
                 Text(detailTitle)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
                 Spacer()
             }
             .padding(.horizontal, 28)
@@ -120,7 +120,7 @@ struct AppSettingsView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(BiCutTheme.canvas)
+        .background(BeCutTheme.canvas)
     }
 
     private var detailTitle: String {
@@ -128,7 +128,7 @@ struct AppSettingsView: View {
         case .general: isChinese ? "通用设置" : "General Settings"
         case .engine: isChinese ? "引擎设置" : "Engine Settings"
         case .notifications: isChinese ? "通知设置" : "Notifications Settings"
-        case .about: isChinese ? "关于 BiCut" : "About BiCut"
+        case .about: isChinese ? "关于 BeCut" : "About BeCut"
         }
     }
 
@@ -141,10 +141,10 @@ struct AppSettingsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(isChinese ? "外观" : "Appearance Theme")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(BiCutTheme.label)
+                            .foregroundStyle(BeCutTheme.label)
                         Text(isChinese ? "在浅色与深色之间切换。" : "Switch between light or dark mode styling.")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(BiCutTheme.secondaryLabel)
+                            .foregroundStyle(BeCutTheme.secondaryLabel)
                     }
                     Spacer()
                     // Design: dark capsule control with sun / moon + label
@@ -154,15 +154,15 @@ struct AppSettingsView: View {
                         HStack(spacing: 7) {
                             Image(systemName: appearanceActionIcon)
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(BiCutTheme.amber)
+                                .foregroundStyle(BeCutTheme.amber)
                             Text(appearanceActionTitle)
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(BiCutTheme.label)
+                                .foregroundStyle(BeCutTheme.label)
                         }
                         .padding(.horizontal, 14)
                         .frame(height: 34)
                         .background(Capsule().fill(Color.black.opacity(0.28)))
-                        .overlay(Capsule().stroke(BiCutTheme.stroke, lineWidth: 1))
+                        .overlay(Capsule().stroke(BeCutTheme.stroke, lineWidth: 1))
                         .contentShape(Capsule())
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -174,10 +174,10 @@ struct AppSettingsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(isChinese ? "语言" : "Language")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(BiCutTheme.label)
+                            .foregroundStyle(BeCutTheme.label)
                         Text(isChinese ? "切换整个应用界面语言（保存在本机）。" : "Changes the entire app interface language (saved on this Mac).")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(BiCutTheme.secondaryLabel)
+                            .foregroundStyle(BeCutTheme.secondaryLabel)
                     }
                     Spacer()
                     languageSegment
@@ -191,7 +191,7 @@ struct AppSettingsView: View {
                     : "Used when re-encoding in Precise mode. Fast mode keeps the source codec."
             )
             .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(BiCutTheme.tertiaryLabel)
+            .foregroundStyle(BeCutTheme.tertiaryLabel)
 
             HStack(spacing: 4) {
                 ForEach(VideoCodecPreference.allCases) { codec in
@@ -201,18 +201,18 @@ struct AppSettingsView: View {
             .padding(4)
             .background(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(BiCutTheme.control)
+                    .fill(BeCutTheme.control)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+                    .stroke(BeCutTheme.stroke, lineWidth: 1)
             )
 
             sectionHeader(isChinese ? "默认导出位置" : "DEFAULT DESTINATION")
             HStack(spacing: 10) {
                 Text(model.destinationDisplayPath)
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
                     .lineLimit(1)
                     .truncationMode(.middle)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -220,11 +220,11 @@ struct AppSettingsView: View {
                     .frame(height: 42)
                     .background(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(BiCutTheme.control)
+                            .fill(BeCutTheme.control)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(BiCutTheme.stroke, lineWidth: 1)
+                            .stroke(BeCutTheme.stroke, lineWidth: 1)
                     )
 
                 secondaryPillButton(isChinese ? "选择…" : "Browse…") {
@@ -247,7 +247,7 @@ struct AppSettingsView: View {
                 } label: {
                     Text(lang.displayName)
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(selected ? BiCutTheme.label : BiCutTheme.secondaryLabel)
+                        .foregroundStyle(selected ? BeCutTheme.label : BeCutTheme.secondaryLabel)
                         .padding(.horizontal, 12)
                         .frame(height: 30)
                         .background(
@@ -261,11 +261,11 @@ struct AppSettingsView: View {
         .padding(3)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(BiCutTheme.control)
+                .fill(BeCutTheme.control)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
     }
 
@@ -276,7 +276,7 @@ struct AppSettingsView: View {
         } label: {
             Text(codec.displayName)
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(selected ? BiCutTheme.label : BiCutTheme.secondaryLabel)
+                .foregroundStyle(selected ? BeCutTheme.label : BeCutTheme.secondaryLabel)
                 .frame(maxWidth: .infinity)
                 .frame(height: 34)
                 .background(
@@ -292,16 +292,16 @@ struct AppSettingsView: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(BiCutTheme.label)
+                .foregroundStyle(BeCutTheme.label)
                 .padding(.horizontal, 14)
                 .frame(height: 42)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(BiCutTheme.control)
+                        .fill(BeCutTheme.control)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(BiCutTheme.stroke, lineWidth: 1)
+                        .stroke(BeCutTheme.stroke, lineWidth: 1)
                 )
                 .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
@@ -314,18 +314,18 @@ struct AppSettingsView: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "bolt.fill")
-                    .foregroundStyle(BiCutTheme.amber)
+                    .foregroundStyle(BeCutTheme.amber)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(isChinese ? "硬件加速导出" : "GPU Hardware Acceleration")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(BiCutTheme.amber)
+                        .foregroundStyle(BeCutTheme.amber)
                     Text(
                         isChinese
                             ? "在 Apple 芯片上优先使用系统媒体引擎加速编码，配合快速直通，让长视频切片更快完成。"
                             : "Leverages the Apple media engine on Apple Silicon for faster re-encoding, and pairs with stream-copy Fast mode for near-instant slices."
                     )
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(BiCutTheme.amber.opacity(0.88))
+                    .foregroundStyle(BeCutTheme.amber.opacity(0.88))
                     .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -333,11 +333,11 @@ struct AppSettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(BiCutTheme.amber.opacity(0.08))
+                    .fill(BeCutTheme.amber.opacity(0.08))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(BiCutTheme.amber.opacity(0.28), lineWidth: 1)
+                    .stroke(BeCutTheme.amber.opacity(0.28), lineWidth: 1)
             )
 
             toggleCard(
@@ -374,21 +374,21 @@ struct AppSettingsView: View {
                 HStack {
                     Text(splitProtocolLabel)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(BiCutTheme.label)
+                        .foregroundStyle(BeCutTheme.label)
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.tertiaryLabel)
+                        .foregroundStyle(BeCutTheme.tertiaryLabel)
                 }
                 .padding(.horizontal, 14)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(BiCutTheme.control)
+                        .fill(BeCutTheme.control)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(BiCutTheme.stroke, lineWidth: 1)
+                        .stroke(BeCutTheme.stroke, lineWidth: 1)
                 )
             }
             .menuStyle(.borderlessButton)
@@ -452,21 +452,21 @@ struct AppSettingsView: View {
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Image(systemName: "internaldrive")
-                    .foregroundStyle(BiCutTheme.blue)
+                    .foregroundStyle(BeCutTheme.blue)
                 Text(isChinese ? "目标磁盘剩余空间" : "Target Storage Space")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
                 Spacer()
                 Text(free.label)
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
             }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.white.opacity(0.08))
                     Capsule()
-                        .fill(BiCutTheme.blue)
+                        .fill(BeCutTheme.blue)
                         .frame(width: max(8, geo.size.width * free.usedFraction))
                 }
             }
@@ -478,16 +478,16 @@ struct AppSettingsView: View {
                     : "Based on the volume of your default export folder. Exports still preflight free space."
             )
             .font(.system(size: 11, weight: .medium))
-            .foregroundStyle(BiCutTheme.tertiaryLabel)
+            .foregroundStyle(BeCutTheme.tertiaryLabel)
         }
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(BiCutTheme.control)
+                .fill(BeCutTheme.control)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                .stroke(BeCutTheme.stroke, lineWidth: 1)
         )
     }
 
@@ -515,21 +515,21 @@ struct AppSettingsView: View {
         VStack(spacing: 16) {
             ZStack {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(BiCutTheme.blueSoft)
+                    .fill(BeCutTheme.blueSoft)
                     .frame(width: 72, height: 72)
                 Image(systemName: "scissors")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(BiCutTheme.blue)
+                    .foregroundStyle(BeCutTheme.blue)
             }
             .padding(.top, 20)
 
-            Text("BiCut")
+            Text("BeCut")
                 .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(BiCutTheme.label)
+                .foregroundStyle(BeCutTheme.label)
 
-            Text("Version \(BiCutAppMetadata.versionLabel)")
+            Text("Version \(BeCutAppMetadata.versionLabel)")
                 .font(.system(size: 12, weight: .medium, design: .monospaced))
-                .foregroundStyle(BiCutTheme.secondaryLabel)
+                .foregroundStyle(BeCutTheme.secondaryLabel)
 
             Text(
                 isChinese
@@ -537,26 +537,26 @@ struct AppSettingsView: View {
                     : "A local macOS tool for fixed-duration video slicing. Fast stream-copy and precise re-encode modes — all processing stays on device."
             )
             .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(BiCutTheme.secondaryLabel)
+            .foregroundStyle(BeCutTheme.secondaryLabel)
             .multilineTextAlignment(.center)
             .frame(maxWidth: 420)
 
-            Divider().overlay(BiCutTheme.hairline).padding(.vertical, 8)
+            Divider().overlay(BeCutTheme.hairline).padding(.vertical, 8)
 
             HStack(spacing: 16) {
-                Link(destination: BiCutAppMetadata.websiteURL) {
+                Link(destination: BeCutAppMetadata.websiteURL) {
                     Label(isChinese ? "项目主页" : "Website", systemImage: "safari")
                 }
-                Link(destination: BiCutAppMetadata.supportURL) {
+                Link(destination: BeCutAppMetadata.supportURL) {
                     Label(isChinese ? "支持邮箱" : "Support", systemImage: "envelope")
                 }
             }
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(BiCutTheme.blue)
+            .foregroundStyle(BeCutTheme.blue)
 
-            Text("© \(Calendar.current.component(.year, from: Date())) BiCut")
+            Text("© \(Calendar.current.component(.year, from: Date())) BeCut")
                 .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(BiCutTheme.tertiaryLabel)
+                .foregroundStyle(BeCutTheme.tertiaryLabel)
                 .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
@@ -569,11 +569,11 @@ struct AppSettingsView: View {
             .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(BiCutTheme.control)
+                    .fill(BeCutTheme.control)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(BiCutTheme.stroke, lineWidth: 1)
+                    .stroke(BeCutTheme.stroke, lineWidth: 1)
             )
     }
 
@@ -583,17 +583,17 @@ struct AppSettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(BiCutTheme.label)
+                        .foregroundStyle(BeCutTheme.label)
                     Text(subtitle)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                        .foregroundStyle(BeCutTheme.secondaryLabel)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 12)
                 Toggle("", isOn: isOn)
                     .labelsHidden()
                     .toggleStyle(.switch)
-                    .tint(BiCutTheme.blue)
+                    .tint(BeCutTheme.blue)
             }
         }
     }
@@ -602,7 +602,7 @@ struct AppSettingsView: View {
         Text(title)
             .font(.system(size: 10, weight: .bold))
             .tracking(0.8)
-            .foregroundStyle(BiCutTheme.tertiaryLabel)
+            .foregroundStyle(BeCutTheme.tertiaryLabel)
     }
 
     private var preferredColorScheme: ColorScheme? {

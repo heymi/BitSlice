@@ -614,9 +614,9 @@ final class AppViewModel {
             ? lang.t("Fast stream-copy", "快速直通")
             : lang.t("Precise re-encode", "精确重编码")
         exportLogs = [
-            lang.t("[BiCut Core] Starting export engine…", "[BiCut Core] 初始化导出引擎…"),
-            lang.t("[BiCut Core] Mode: \(modeLabel)", "[BiCut Core] 模式: \(modeLabel)"),
-            lang.t("[BiCut Core] Analyzing video tracks…", "[BiCut Core] 分析视频轨道结构…")
+            lang.t("[BeCut Core] Starting export engine…", "[BeCut Core] 初始化导出引擎…"),
+            lang.t("[BeCut Core] Mode: \(modeLabel)", "[BeCut Core] 模式: \(modeLabel)"),
+            lang.t("[BeCut Core] Analyzing video tracks…", "[BeCut Core] 分析视频轨道结构…")
         ]
 
         let exportSegments: [SegmentInfo]
@@ -628,15 +628,15 @@ final class AppViewModel {
                     plannedSegments: segments
                 )
                 exportLogs.append(lang.t(
-                    "[BiCut Core] Cuts aligned to source frames",
-                    "[BiCut Core] 切点已按源视频帧对齐"
+                    "[BeCut Core] Cuts aligned to source frames",
+                    "[BeCut Core] 切点已按源视频帧对齐"
                 ))
             case .fast:
                 // Keep planned timeline; passthrough may snap starts to prior keyframes.
                 exportSegments = segments
                 exportLogs.append(lang.t(
-                    "[BiCut Core] Fast mode: cuts may snap to nearby keyframes",
-                    "[BiCut Core] 快速模式：切点可能回退到附近关键帧"
+                    "[BeCut Core] Fast mode: cuts may snap to nearby keyframes",
+                    "[BeCut Core] 快速模式：切点可能回退到附近关键帧"
                 ))
             }
 
@@ -680,7 +680,7 @@ final class AppViewModel {
         phase = .exporting(currentSegment: 0, totalSegments: segments.count, overallProgress: 0, segmentProgress: 0)
 
         var assertionID: IOPMAssertionID = 0
-        let reason = "BiCut 视频分片导出" as CFString
+        let reason = "BeCut 视频分片导出" as CFString
         IOPMAssertionCreateWithName(
             kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
             IOPMAssertionLevel(kIOPMAssertionLevelOn),
@@ -719,14 +719,14 @@ final class AppViewModel {
             )
         } catch is CancellationError {
             if assertionID != 0 { IOPMAssertionRelease(assertionID) }
-            exportLogs.append(lang.t("[BiCut Core] Export cancelled", "[BiCut Core] 导出已取消"))
+            exportLogs.append(lang.t("[BeCut Core] Export cancelled", "[BeCut Core] 导出已取消"))
             phase = .loaded
             return
         } catch {
             if assertionID != 0 { IOPMAssertionRelease(assertionID) }
             exportLogs.append(lang.t(
-                "[BiCut Core] Error: \(error.localizedDescription)",
-                "[BiCut Core] 错误: \(error.localizedDescription)"
+                "[BeCut Core] Error: \(error.localizedDescription)",
+                "[BeCut Core] 错误: \(error.localizedDescription)"
             ))
             phase = .failed(message: lang.t(
                 "Export failed: \(error.localizedDescription)",
@@ -740,15 +740,15 @@ final class AppViewModel {
         switch result {
         case .completed:
             exportLogs.append(lang.t(
-                "[BiCut Core] ✅ Export complete — \(segments.count) files",
-                "[BiCut Core] ✅ 导出完成 — \(segments.count) 个文件"
+                "[BeCut Core] ✅ Export complete — \(segments.count) files",
+                "[BeCut Core] ✅ 导出完成 — \(segments.count) 个文件"
             ))
             phase = .completed(outputURL: outputDir)
             if appSettings.playSoundWhenFinished {
                 NSSound(named: "Glass")?.play()
             }
         case .cancelled:
-            exportLogs.append(lang.t("[BiCut Core] Export cancelled", "[BiCut Core] 导出已取消"))
+            exportLogs.append(lang.t("[BeCut Core] Export cancelled", "[BeCut Core] 导出已取消"))
             phase = .loaded
         }
     }

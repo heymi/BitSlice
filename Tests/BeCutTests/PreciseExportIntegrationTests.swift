@@ -3,7 +3,7 @@ import AVFAudio
 import CoreVideo
 import Foundation
 import Testing
-@testable import BiCut
+@testable import BeCut
 
 @Suite("Precise media export")
 struct PreciseExportIntegrationTests {
@@ -55,7 +55,7 @@ struct PreciseExportIntegrationTests {
             #expect(size == CGSize(width: 64, height: 48))
             let metadata = try await outputAsset.load(.commonMetadata)
             let title = try await metadata.first?.load(.stringValue)
-            #expect(title == "BiCut Fixture")
+            #expect(title == "BeCut Fixture")
             #expect(FileManager.default.fileExists(atPath: outputURL.path))
         }
     }
@@ -173,7 +173,7 @@ struct PreciseExportIntegrationTests {
             index: 0,
             start: CMTime(seconds: 1, preferredTimescale: 30),
             end: CMTime(seconds: 2, preferredTimescale: 30),
-            fileName: "fast_part_01.mp4"
+            fileName: "fast_01.mp4"
         )
         let outputURL = directory.appendingPathComponent(segment.fileName)
         let processor = VideoProcessor(
@@ -197,7 +197,7 @@ struct PreciseExportIntegrationTests {
 
 private func makeTemporaryDirectory() throws -> URL {
     let directory = FileManager.default.temporaryDirectory
-        .appendingPathComponent("BiCutTests-\(UUID().uuidString)", isDirectory: true)
+        .appendingPathComponent("BeCutTests-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     return directory
 }
@@ -213,7 +213,7 @@ private func makeVideoFixture(
     let writer = try AVAssetWriter(url: url, fileType: fileType)
     let title = AVMutableMetadataItem()
     title.identifier = .quickTimeMetadataTitle
-    title.value = "BiCut Fixture" as NSString
+    title.value = "BeCut Fixture" as NSString
     writer.metadata = [title]
     let input = AVAssetWriterInput(
         mediaType: .video,

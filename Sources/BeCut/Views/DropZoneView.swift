@@ -27,7 +27,7 @@ struct DropZoneView: View {
             .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(BiCutTheme.canvas)
+        .background(BeCutTheme.canvas)
         .fileImporter(
             isPresented: Binding(
                 get: { local.showFileImporter },
@@ -45,31 +45,31 @@ struct DropZoneView: View {
         VStack(spacing: 18) {
             ZStack {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(BiCutTheme.blueSoft)
+                    .fill(BeCutTheme.blueSoft)
                 Image(systemName: "film.stack")
                     .font(.system(size: 30, weight: .medium))
-                    .foregroundStyle(BiCutTheme.blue)
+                    .foregroundStyle(BeCutTheme.blue)
             }
             .frame(width: 72, height: 72)
 
             VStack(spacing: 8) {
                 Text(lang.t("Drag a video here, or click to browse", "拖入视频，或点击选择文件"))
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(BiCutTheme.label)
+                    .foregroundStyle(BeCutTheme.label)
                 Text(lang.t("Supports MP4, MOV & M4V · H.264 / HEVC", "支持 MP4、MOV、M4V · H.264 / HEVC"))
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                    .foregroundStyle(BeCutTheme.secondaryLabel)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 260)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(local.isTargeted ? BiCutTheme.blueSoft : BiCutTheme.panel)
+                .fill(local.isTargeted ? BeCutTheme.blueSoft : BeCutTheme.panel)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(
-                    local.isTargeted ? BiCutTheme.blue.opacity(0.7) : BiCutTheme.stroke,
+                    local.isTargeted ? BeCutTheme.blue.opacity(0.7) : BeCutTheme.stroke,
                     style: StrokeStyle(lineWidth: local.isTargeted ? 1.5 : 1, dash: local.isTargeted ? [] : [6, 5])
                 )
         )
@@ -100,7 +100,7 @@ struct DropZoneView: View {
                     Text(lang.t("RECENTLY PROCESSED", "最近处理"))
                         .font(.system(size: 10, weight: .bold))
                         .tracking(1.0)
-                        .foregroundStyle(BiCutTheme.tertiaryLabel)
+                        .foregroundStyle(BeCutTheme.tertiaryLabel)
                     Spacer()
                 }
 
@@ -110,35 +110,35 @@ struct DropZoneView: View {
                     } label: {
                         HStack(spacing: 12) {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .fill(BiCutTheme.control)
+                                .fill(BeCutTheme.control)
                                 .frame(width: 42, height: 42)
                                 .overlay(
                                     Image(systemName: "play.rectangle")
-                                        .foregroundStyle(BiCutTheme.secondaryLabel)
+                                        .foregroundStyle(BeCutTheme.secondaryLabel)
                                 )
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(recent.fileName)
                                     .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(BiCutTheme.label)
+                                    .foregroundStyle(BeCutTheme.label)
                                     .lineLimit(1)
                                     .truncationMode(.middle)
                                 Text("\(recent.width)×\(recent.height) · \(recent.frameRate) fps")
                                     .font(.system(size: 11, weight: .medium, design: .monospaced))
-                                    .foregroundStyle(BiCutTheme.secondaryLabel)
+                                    .foregroundStyle(BeCutTheme.secondaryLabel)
                             }
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(BiCutTheme.tertiaryLabel)
+                                .foregroundStyle(BeCutTheme.tertiaryLabel)
                         }
                         .padding(12)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(BiCutTheme.panel)
+                                .fill(BeCutTheme.panel)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(BiCutTheme.stroke, lineWidth: 1)
+                                .stroke(BeCutTheme.stroke, lineWidth: 1)
                         )
                     }
                     .buttonStyle(ScaleButtonStyle())
