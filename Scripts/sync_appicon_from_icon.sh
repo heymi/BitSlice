@@ -56,7 +56,7 @@ resize "appicon_256.png" 256
 resize "appicon_256@2x.png" 512
 resize "appicon_512.png" 512
 resize "appicon_512@2x.png" 1024
-resize "appicon_1024.png" 1024
+# Do not put unreferenced files in the appiconset (actool: "unassigned child").
 
 cat > "$OUT/Contents.json" <<'JSON'
 {
