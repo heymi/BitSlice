@@ -59,24 +59,24 @@ struct InspectorSidebarView: View {
                     .fill(BeCutTheme.control)
             )
 
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: .center, spacing: 8) {
                 RoundedRectangle(cornerRadius: 1.5)
                     .fill(model.config.splittingStrategy == .fast ? BeCutTheme.amber : BeCutTheme.blue)
-                    .frame(width: 3, height: 40)
+                    .frame(width: 3, height: 12)
                 Text(model.config.splittingStrategy.shortDescription(for: lang))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(BeCutTheme.secondaryLabel)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(BeCutTheme.well)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .stroke(BeCutTheme.stroke, lineWidth: 1)
             )
         }
@@ -446,13 +446,13 @@ struct InspectorSidebarView: View {
         switch model.config.splittingStrategy {
         case .fast:
             lang.t(
-                "Fast mode copies media streams when possible. Cut starts may snap back to the previous keyframe.",
-                "快速模式尽量直通复制码流。切点可能回退到上一关键帧。"
+                "Fast mode copies media streams when possible for maximum speed.",
+                "快速模式尽量直通复制码流，速度优先。"
             )
         case .precise:
             lang.t(
-                "Precise mode re-encodes for frame-aligned cuts. Slower; keeps planned timing, frame rate, and orientation.",
-                "精确模式通过重编码实现帧级切点。更慢，但更贴合计划时长、帧率与方向。"
+                "Precise mode re-encodes for frame-aligned cuts, matching planned timing, frame rate, and orientation.",
+                "精确模式通过重编码实现帧级切点，贴合计划时长、帧率与方向。"
             )
         }
     }

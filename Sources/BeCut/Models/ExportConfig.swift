@@ -135,13 +135,13 @@ enum SplittingStrategy: String, CaseIterable, Codable, Identifiable, Equatable {
         switch self {
         case .fast:
             language.t(
-                "Near-instant stream copy. Cut starts may begin slightly earlier at the previous keyframe (often under 1–2s).",
-                "近乎即时的直通复制。切点可能略提前到上一关键帧（常见不到 1–2 秒）。"
+                "Near-instant stream copy for maximum speed.",
+                "近乎即时的直通复制，速度优先。"
             )
         case .precise:
             language.t(
-                "Frame-accurate cuts via re-encoding. Keeps planned timing; slower and may lightly recompress.",
-                "重编码实现帧级精确切点，时间更准，但更慢，可能有轻微画质损失。"
+                "Frame-accurate cuts via re-encoding.",
+                "重编码实现帧级精确切点。"
             )
         }
     }

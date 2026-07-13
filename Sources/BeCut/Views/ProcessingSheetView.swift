@@ -24,8 +24,8 @@ struct ProcessingSheetView: View {
     private var exportSubtitle: String {
         if isFast {
             return isChinese
-                ? "直通复制码流，尽量不重编码。切点可能略提前到关键帧。"
-                : "Stream-copying when possible. Cuts may snap slightly earlier to a keyframe."
+                ? "直通复制码流，尽量不重编码，导出更快。"
+                : "Stream-copying when possible for maximum speed."
         }
         return isChinese
             ? "正在按帧对齐并重新编码，请保持 BeCut 开启。"

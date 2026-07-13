@@ -114,7 +114,7 @@ struct AppSettings: Codable, Equatable {
 enum BeCutAppMetadata {
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
     static let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-    static let websiteURL = URL(string: "https://github.com/heymi/BitSlice")!
+    static let websiteURL = URL(string: "https://becut.aedc.cc")!
     static let supportEmail = "support@becut.app"
     static let supportURL = URL(string: "mailto:\(supportEmail)")!
 
