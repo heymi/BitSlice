@@ -16,12 +16,10 @@ targets:
       - path: Sources/BeCut
       - path: Assets.xcassets
         buildPhase: resources
-      # Icon Composer multilayer source (required). After `xcodegen generate`,
-      # run Scripts/fix_xcodegen_icon_type.sh so lastKnownFileType becomes
-      # folder.iconcomposer.icon (otherwise Xcode only copies the package).
-      - path: AppIcon.icon
-        buildPhase: resources
-        type: folder
+      # AppIcon.icon is design source only (Icon Composer). Xcode 26 actool
+      # crashes compiling .icon packages, and App Store submission requires a
+      # release Xcode — so the build uses Assets.xcassets/AppIcon.appiconset
+      # rasterized from AppIcon.icon (see Scripts/sync_appicon_from_icon.sh).
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.becut.BeCut
@@ -35,7 +33,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "7"
+        CURRENT_PROJECT_VERSION: "8"
         INFOPLIST_KEY_CFBundleDisplayName: BeCut
         INFOPLIST_KEY_NSPrincipalClass: NSApplication
         INFOPLIST_KEY_NSHighResolutionCapable: YES

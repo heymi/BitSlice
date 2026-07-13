@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# Build BeCut.app via Xcode (Icon Composer .icon → actool).
+# Build BeCut.app via Xcode (App Store–eligible release toolchain).
 #
-# App icon source (Apple docs):
-#   https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer
-#   - AppIcon.icon  Icon Composer multilayer package at project root
-#
-# Note: Xcode 26.6 RC actool crashes compiling .icon packages. Prefer Xcode 27+
-# (Xcode-beta / Xcode.app ≥ 27) so Dock/Finder get the compiled icon from .icon.
+# Icon pipeline:
+#   AppIcon.icon  → (local) Scripts/sync_appicon_from_icon.sh
+#                 → Assets.xcassets/AppIcon.appiconset  (committed PNGs)
+# Xcode 26 actool crashes on .icon packages; release/Xcode Cloud use appiconset.
 set -euo pipefail
 
 MODE="${1:-run}"
@@ -16,31 +14,28 @@ APP_NAME="BeCut"
 DERIVED="$ROOT_DIR/build/DerivedData"
 
 if [[ -z "${DEVELOPER_DIR:-}" ]]; then
-  if [[ -d /Applications/Xcode-beta.app/Contents/Developer ]]; then
-    # Xcode 27+ required for reliable .icon compilation
-    export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
-  elif [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
+  # Prefer release Xcode for packaging that can be submitted.
+  if [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
   elif [[ -d /Applications/Xcode-26.6-RC.app/Contents/Developer ]]; then
-    echo "warning: Xcode 26.6 RC actool may crash on AppIcon.icon; prefer Xcode 27+" >&2
     export DEVELOPER_DIR=/Applications/Xcode-26.6-RC.app/Contents/Developer
+  elif [[ -d /Applications/Xcode-beta.app/Contents/Developer ]]; then
+    echo "warning: only Xcode beta found; App Store submission may reject beta builds" >&2
+    export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
   fi
 fi
 
 cd "$ROOT_DIR"
 
-if [[ ! -d AppIcon.icon ]]; then
-  echo "Missing AppIcon.icon — Icon Composer source required (no PNG appiconset)." >&2
-  exit 1
-fi
-
 if [[ ! -d BeCut.xcodeproj ]]; then
-  echo "Missing BeCut.xcodeproj — run: xcodegen generate && Scripts/fix_xcodegen_icon_type.sh" >&2
+  echo "Missing BeCut.xcodeproj — run: xcodegen generate" >&2
   exit 1
 fi
 
-# Ensure .icon is compiled by actool, not copied as a folder
-"$ROOT_DIR/Scripts/fix_xcodegen_icon_type.sh"
+if [[ ! -f Assets.xcassets/AppIcon.appiconset/Contents.json ]]; then
+  echo "Missing AppIcon.appiconset — run: Scripts/sync_appicon_from_icon.sh" >&2
+  exit 1
+fi
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 

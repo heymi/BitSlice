@@ -27,7 +27,6 @@
 		B0C125CA37ABF214A3FC5FE8 /* ExportPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D23AB4907D01FB2E47E215D /* ExportPipeline.swift */; };
 		C094357B756968E5EE96FBC9 /* AppSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 856E5C20DEF2E9CC1B7A0DEA /* AppSettingsView.swift */; };
 		DBB0D64F55DE37BA2F9CEAD2 /* SegmentInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BAE827CA4C759711EBD2BB /* SegmentInfo.swift */; };
-		DDDF605AC5D1A0B832CBBDAD /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = BE0038C75DEA766D41DD891F /* AppIcon.icon */; };
 		DDF9A1864F92002DE33AB48B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D4BEA65E7E473852ABFB776 /* ContentView.swift */; };
 		DFAFA799E8F55176639971F9 /* FailureSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E62273DA5A8D300D7548080 /* FailureSheetView.swift */; };
 /* End PBXBuildFile section */
@@ -51,7 +50,6 @@
 		98426102B0F48F42CFBFBCB5 /* VideoProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessor.swift; sourceTree = "<group>"; };
 		9E62273DA5A8D300D7548080 /* FailureSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureSheetView.swift; sourceTree = "<group>"; };
 		BDC3FA124E6832320B572C68 /* ProcessingSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingSheetView.swift; sourceTree = "<group>"; };
-		BE0038C75DEA766D41DD891F /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = SOURCE_ROOT; };
 		CE83ECC82F4ADCA341D0B3CB /* FinderPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderPreviewView.swift; sourceTree = "<group>"; };
 		D0AD09E66D4BFFA090E984D9 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		D5300BA54BAB06BBC79E0D03 /* AppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppViewModel.swift; sourceTree = "<group>"; };
@@ -131,7 +129,6 @@
 		EA4FE846B3CC2CE9F8BF2D8A = {
 			isa = PBXGroup;
 			children = (
-				BE0038C75DEA766D41DD891F /* AppIcon.icon */,
 				5CBBF3B1177DD5ABDA7D733E /* Assets.xcassets */,
 				EEE57A65AE74D854910CC778 /* Sources */,
 				D5B87641FC50AE43DB42389A /* Products */,
@@ -206,7 +203,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DDDF605AC5D1A0B832CBBDAD /* AppIcon.icon in Resources */,
 				72CBDCB3E6A4EE4C9DDAA000 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -254,7 +250,7 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 2HV6W3W4M4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -284,7 +280,7 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 2HV6W3W4M4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
