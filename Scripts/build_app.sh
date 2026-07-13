@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Build BeCut.app via Xcode (official App Icon pipeline).
+# Build BeCut.app via Xcode (Icon Composer .icon → actool).
 #
-# App icon sources (Apple docs):
+# App icon source (Apple docs):
 #   https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer
-#   - AppIcon.icon          Icon Composer multilayer source (project root)
-#   - Assets.xcassets/AppIcon  Flattened macOS sizes for Dock (actool → Assets.car + AppIcon.icns)
+#   - AppIcon.icon  Icon Composer multilayer package at project root
 #
-# Note: Xcode 26.6 RC's actool currently crashes when compiling .icon packages on this
-# machine. Until that is fixed, Dock uses the AppIcon asset catalog. Keep AppIcon.icon
-# in the project for Icon Composer editing and for when actool can compile it.
+# Note: Xcode 26.6 RC actool crashes compiling .icon packages. Prefer Xcode 27+
+# (Xcode-beta / Xcode.app ≥ 27) so Dock/Finder get the compiled icon from .icon.
 set -euo pipefail
 
 MODE="${1:-run}"
@@ -18,23 +16,35 @@ APP_NAME="BeCut"
 DERIVED="$ROOT_DIR/build/DerivedData"
 
 if [[ -z "${DEVELOPER_DIR:-}" ]]; then
-  if [[ -d /Applications/Xcode-26.6-RC.app/Contents/Developer ]]; then
-    export DEVELOPER_DIR=/Applications/Xcode-26.6-RC.app/Contents/Developer
+  if [[ -d /Applications/Xcode-beta.app/Contents/Developer ]]; then
+    # Xcode 27+ required for reliable .icon compilation
+    export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
   elif [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+  elif [[ -d /Applications/Xcode-26.6-RC.app/Contents/Developer ]]; then
+    echo "warning: Xcode 26.6 RC actool may crash on AppIcon.icon; prefer Xcode 27+" >&2
+    export DEVELOPER_DIR=/Applications/Xcode-26.6-RC.app/Contents/Developer
   fi
 fi
 
 cd "$ROOT_DIR"
 
-if [[ ! -d BeCut.xcodeproj ]]; then
-  echo "Missing BeCut.xcodeproj — run: xcodegen generate" >&2
+if [[ ! -d AppIcon.icon ]]; then
+  echo "Missing AppIcon.icon — Icon Composer source required (no PNG appiconset)." >&2
   exit 1
 fi
 
+if [[ ! -d BeCut.xcodeproj ]]; then
+  echo "Missing BeCut.xcodeproj — run: xcodegen generate && Scripts/fix_xcodegen_icon_type.sh" >&2
+  exit 1
+fi
+
+# Ensure .icon is compiled by actool, not copied as a folder
+"$ROOT_DIR/Scripts/fix_xcodegen_icon_type.sh"
+
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 
-echo "→ xcodebuild Release"
+echo "→ xcodebuild Release (DEVELOPER_DIR=${DEVELOPER_DIR:-default})"
 xcodebuild -project BeCut.xcodeproj -scheme BeCut -configuration Release \
   -derivedDataPath "$DERIVED" \
   -destination 'platform=macOS,arch=arm64' \
@@ -52,13 +62,6 @@ fi
 mkdir -p "$DIST_DIR"
 rm -rf "$DIST_DIR/$APP_NAME.app"
 cp -R "$APP_SRC" "$DIST_DIR/$APP_NAME.app"
-
-# Also copy Icon Composer source into the app for reference / future OS support
-if [[ -d "$ROOT_DIR/AppIcon.icon" ]]; then
-  mkdir -p "$DIST_DIR/$APP_NAME.app/Contents/Resources"
-  rm -rf "$DIST_DIR/$APP_NAME.app/Contents/Resources/AppIcon.icon"
-  cp -R "$ROOT_DIR/AppIcon.icon" "$DIST_DIR/$APP_NAME.app/Contents/Resources/AppIcon.icon"
-fi
 
 /usr/bin/touch "$DIST_DIR/$APP_NAME.app"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$DIST_DIR/$APP_NAME.app" 2>/dev/null || true
