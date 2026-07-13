@@ -52,26 +52,26 @@
 - **分类**：Photo & Video。  
 - **禁止词**：无损、零编码、任意格式、性能保证（见 marketing-claims-audit）。
 
-### zh-Hans
+### zh-Hans（对齐官网，2026-07-13 已推 ASC）
 
 | 字段 | 内容 | 字数 |
 | --- | --- | ---: |
-| 名称 | BeCut：固定时长视频分片 | 14 |
-| 副标题 | 等时长切段，本地精确导出 | 12 |
-| 关键词 | 视频切割,视频分割,切片,剪辑,分片,录屏,短视频,导出,时长,分割器,切段,MP4,MOV | 46 |
-| 宣传文本 | 导入长视频，选 15/30/60 秒或自定义时长… | 49 |
+| 名称 | BeCut：长视频一拖即切 | 13 |
+| 副标题 | 等时长批量分片，本地导出 | 12 |
+| 关键词 | 视频分割,视频切割,视频剪辑,切片,切段,分割器,录屏,短视频,固定时长,MP4,MOV,HEVC,分段,素材,分P,多分P,B站,UP主,投稿,合集,直播 | 78 |
+| 宣传文本 | 长视频拖入即切。等时长批量导出，轻松搞定 B 站分 P。全程本地，切点帧对齐。 | 39 |
 
-### en-US
+### en-US（对齐官网，2026-07-13 已推 ASC）
 
 | 字段 | 内容 | 字数 |
 | --- | --- | ---: |
 | 名称 | BeCut: Video Splitter | 21 |
-| 副标题 | Equal-length clips, local | 25 |
-| 关键词 | cutter,trim,segment,divide,batch,export,mp4,mov,slicer,duration,shorts,reels,clip,split | 87 |
-| 宣传文本 | Drop a long video, pick 15/30/60s… | 116 |
+| 副标题 | Equal clips. Local export. | 26 |
+| 关键词 | cutter,trimmer,slicer,segment,divide,batch,export,mp4,mov,m4v,hevc,shorts,reels,clip,local,mac | 94 |
+| 宣传文本 | Drop a long video, set equal length, export continuous clips. Fully on-device with frame-aligned cuts. | 102 |
 
-Support URL（临时）：`https://github.com/heymi/BitSlice`  
-（上架前建议换成正式支持页 + Privacy Policy URL。）
+ASO 原则：标题/副标题吃高转化主词；关键词不重复标题副标题已出现词；不写具体 15/30/60 秒；官网口径「等时长 / 本地 / 帧对齐」。  
+Support / Privacy / Marketing：`https://becut.aedc.cc` 及子页。
 
 ### 价格
 
